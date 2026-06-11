@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  workspace:
+    build: .
+    container_name: mickey-workspace
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:////app/data/workspace.db
+      - PORT=8000
+    restart: unless-stopped
