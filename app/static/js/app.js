@@ -7,10 +7,28 @@ let currentYear = new Date().getFullYear();
 let availableModels = [];
 let activeWorkspaceMode = localStorage.getItem('mickey_mode') || 'work';
 
+// Dynamic System Names
+let currentSystemName = 'Mickey';
+let currentAssistantName = 'Cookie';
+
 // MS To-Do active states
 let selectedTask = null;
 let currentSort = 'default'; // 'default', 'priority', 'alphabetical', 'due'
+let currentFilter = 'all';    // 'all', 'high', 'medium', 'low', 'myday', 'pending', 'completed'
 let currentView = 'list'; // 'list', 'grid'
+
+// Ecosystem Screen Time deltas
+let lastActivityTime = Date.now();
+let idleThreshold = 600000; // 10 minutes default (can be updated dynamically)
+let syncActiveDelta = 0;
+let syncIdleDelta = 0;
+let syncLockedDelta = 0;
+let syncSleepDelta = 0;
+
+let syncFocusDelta = 0;
+let syncLearningDelta = 0;
+let syncBreakDelta = 0;
+let lastTickTime = Date.now();
 
 // Global document selectors helper
 const el = (id) => document.getElementById(id);
@@ -140,11 +158,88 @@ async function initApp() {
   el('details-remind-input').addEventListener('change', autoSaveActiveTaskDetails);
   el('details-due-input').addEventListener('change', autoSaveActiveTaskDetails);
 
-  // Todo filter sorting
-  el('todo-sort-btn').addEventListener('click', () => {
-    Sound.playClick();
-    cycleSortOption();
+  // Programmatic click helpers for pickers
+  el('details-due-btn').addEventListener('click', (e) => {
+    if (e.target !== el('details-due-input')) {
+      Sound.playClick();
+      el('details-due-input').showPicker();
+    }
   });
+  el('details-remind-btn').addEventListener('click', (e) => {
+    if (e.target !== el('details-remind-input')) {
+      Sound.playClick();
+      el('details-remind-input').showPicker();
+    }
+  });
+  el('details-repeat-btn').addEventListener('click', (e) => {
+    if (e.target !== el('details-repeat-select')) {
+      Sound.playClick();
+      el('details-repeat-select').showPicker();
+    }
+  });
+
+  // Todo filter sorting Popover toggling
+  el('todo-sort-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    Sound.playClick();
+    const menu = el('todo-sort-menu');
+    const isHidden = menu.style.display === 'none';
+    menu.style.display = isHidden ? 'flex' : 'none';
+  });
+
+  document.addEventListener('click', () => {
+    const menu = el('todo-sort-menu');
+    if (menu) menu.style.display = 'none';
+  });
+
+  // Bind dropdown filter/sort clicks
+  document.querySelectorAll('#todo-sort-menu .sort-menu-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Sound.playClick();
+      el('todo-sort-menu').style.display = 'none';
+      
+      const sortVal = item.getAttribute('data-sort');
+      const filterVal = item.getAttribute('data-filter');
+      
+      if (sortVal) {
+        currentSort = sortVal;
+      }
+      if (filterVal) {
+        currentFilter = filterVal;
+      }
+      
+      const sortLabel = currentSort === 'default' ? 'Default' : 
+                        currentSort === 'priority' ? 'Priority' : 
+                        currentSort === 'alphabetical' ? 'A-Z' : 'Due';
+      const filterLabel = currentFilter === 'all' ? 'All' :
+                          currentFilter === 'high' ? 'High' :
+                          currentFilter === 'medium' ? 'Medium' :
+                          currentFilter === 'low' ? 'Low' :
+                          currentFilter === 'myday' ? 'My Day' :
+                          currentFilter === 'pending' ? 'Pending' : 'Completed';
+      
+      el('todo-sort-btn').querySelector('span').textContent = `Sort: ${sortLabel} | Filter: ${filterLabel}`;
+      renderTasksList(allTasks);
+    });
+  });
+
+  // Analytics toggle button listeners
+  document.querySelectorAll('.analytics-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      Sound.playClick();
+      document.querySelector('.analytics-toggle-btn.active').classList.remove('active');
+      btn.classList.add('active');
+      loadAnalyticsPage(btn.getAttribute('data-view'));
+    });
+  });
+
+  // Background active tracking event listeners
+  const recordActivity = () => { lastActivityTime = Date.now(); };
+  window.addEventListener('mousemove', recordActivity);
+  window.addEventListener('keydown', recordActivity);
+  window.addEventListener('click', recordActivity);
+  window.addEventListener('scroll', recordActivity);
 
   // Mode View toggle (List vs Grid)
   document.querySelectorAll('.todo-view-btn').forEach(btn => {
@@ -161,6 +256,42 @@ async function initApp() {
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => Sound.playClick());
   });
+
+  // Water reminder checkbox toggle
+  el('set-water-enabled').addEventListener('change', (e) => {
+    el('water-interval-group').style.display = e.target.checked ? 'block' : 'none';
+  });
+
+  // Settings view categories toggles initial state
+  setupSettingsToggles();
+
+  // Task repeat select listener
+  el('details-repeat-select').addEventListener('change', async (e) => {
+    if (!selectedTask) return;
+    Sound.playClick();
+    let detailsData = { notes: "", steps: [], is_myday: false };
+    if (selectedTask.description && selectedTask.description.startsWith('{')) {
+      try { detailsData = JSON.parse(selectedTask.description); } catch(err){}
+    } else {
+      detailsData.notes = selectedTask.description || "";
+    }
+    detailsData.repeat = e.target.value;
+    
+    const repeatVal = e.target.value;
+    const repeatLabel = repeatVal === 'none' ? 'Repeat' : `Repeat: ${repeatVal.charAt(0).toUpperCase() + repeatVal.slice(1)}`;
+    el('details-repeat-text').textContent = repeatLabel;
+    
+    await saveUpdatedTaskDescription(detailsData);
+  });
+
+  // Apply saved dashboard widgets order and set up drag-and-drop
+  applyDashboardWidgetsOrder();
+  setupDragAndDrop();
+
+  // Start background tracking loops
+  setInterval(tickScreenTime, 1000);
+  setInterval(syncEcosystemData, 30000);
+  window.addEventListener('beforeunload', syncEcosystemData);
 }
 
 // Sidebar Layout Cycling (Collapsed -> Expanded -> Pinned)
@@ -226,6 +357,7 @@ function setupModeToggle() {
     closeDetailsPane();
 
     // Refresh all data modules
+    applyDashboardWidgetsOrder();
     loadDashboardData();
     loadConversations();
     loadTasks();
@@ -268,10 +400,16 @@ function setupClocks() {
       drawAnalogClock(el('clock-canvas-london'), londonDate);
       drawAnalogClock(el('clock-canvas-jst'), jstDate);
     } else {
-      localClock.textContent = now.toLocaleTimeString();
-      el('clock-est').textContent = estDate.toLocaleTimeString();
-      el('clock-london').textContent = londonDate.toLocaleTimeString();
-      el('clock-jst').textContent = jstDate.toLocaleTimeString();
+      const timeOptions = {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: currentClockFormat === '12hr'
+      };
+      localClock.textContent = now.toLocaleTimeString(undefined, timeOptions);
+      el('clock-est').textContent = estDate.toLocaleTimeString(undefined, timeOptions);
+      el('clock-london').textContent = londonDate.toLocaleTimeString(undefined, timeOptions);
+      el('clock-jst').textContent = jstDate.toLocaleTimeString(undefined, timeOptions);
     }
 
     // Subtitle date formats
@@ -292,16 +430,16 @@ function drawAnalogClock(canvas, date) {
   // Draw clock face circle
   ctx.beginPath();
   ctx.arc(radius, radius, radius - 2, 0, 2 * Math.PI);
-  ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#18181b' : '#ffffff';
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-card').trim() || '#ffffff';
   ctx.fill();
-  ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#27272a' : '#e2e8f0';
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#e2e8f0';
   ctx.lineWidth = 2;
   ctx.stroke();
 
   // Draw center point
   ctx.beginPath();
   ctx.arc(radius, radius, 3, 0, 2 * Math.PI);
-  ctx.fillStyle = 'var(--primary)';
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#6366f1';
   ctx.fill();
 
   // Draw hour ticks
@@ -334,10 +472,7 @@ function drawAnalogClock(canvas, date) {
 }
 
 function varColor(variableName) {
-  const isDark = document.documentElement.classList.contains('dark');
-  if (variableName === '--text-main') return isDark ? '#f4f4f5' : '#0f172a';
-  if (variableName === '--text-muted') return isDark ? '#a1a1aa' : '#64748b';
-  return '#6366f1';
+  return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim() || '#6366f1';
 }
 
 function drawHand(ctx, center, angle, length, width, color) {
@@ -387,7 +522,7 @@ function setupDashboardWidgets() {
   });
 
   // Load saved toggles configuration
-  const widgets = ["clocks", "tasks", "events", "gmail", "figma", "notes", "weather"];
+  const widgets = ["clocks", "tasks", "events", "gmail", "figma", "notes", "weather", "ecosystem"];
   widgets.forEach(w => {
     const toggleEl = el(`toggle-widget-${w}`);
     if (toggleEl) {
@@ -399,7 +534,7 @@ function setupDashboardWidgets() {
 }
 
 function saveDashboardWidgetsConfig() {
-  const widgets = ["clocks", "tasks", "events", "gmail", "figma", "notes", "weather"];
+  const widgets = ["clocks", "tasks", "events", "gmail", "figma", "notes", "weather", "ecosystem"];
   widgets.forEach(w => {
     const toggleEl = el(`toggle-widget-${w}`);
     if (toggleEl) {
@@ -411,7 +546,7 @@ function saveDashboardWidgetsConfig() {
 }
 
 function renderDashboardWidgetsVisibility() {
-  const widgets = ["clocks", "tasks", "events", "gmail", "figma", "notes", "weather"];
+  const widgets = ["clocks", "tasks", "events", "gmail", "figma", "notes", "weather", "ecosystem"];
   widgets.forEach(w => {
     const visible = localStorage.getItem(`mickey_widget_${w}`) !== 'false';
     const widgetCard = el(`widget-${w}`);
@@ -483,6 +618,8 @@ function switchTab(tabId) {
   if (tabId === 'notes') loadNotes();
   if (tabId === 'calendar') renderCalendar();
   if (tabId === 'gmail') loadGmailPanel();
+  if (tabId === 'ecosystem') loadEcosystemPage();
+  if (tabId === 'analytics') loadAnalyticsPage();
 }
 
 // Modals Utilities
@@ -508,10 +645,34 @@ function openNoteModal(note = null) {
     el('note-edit-id').value = note.id;
     el('note-title').value = note.title;
     el('note-content').value = note.content || "";
-    el('note-tags').value = note.tags || "";
+    
+    // Extract color tag and remove it from tags input value
+    let tagsList = note.tags ? note.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+    let noteColor = '#fef08a'; // default
+    const plainTags = [];
+    tagsList.forEach(t => {
+      if (t.startsWith('color:')) {
+        noteColor = t.replace('color:', '');
+      } else {
+        plainTags.push(t);
+      }
+    });
+    
+    el('note-tags').value = plainTags.join(', ');
+    
+    // Select the correct radio color option
+    const radio = document.querySelector(`input[name="note-color"][value="${noteColor}"]`);
+    if (radio) {
+      radio.checked = true;
+    }
   } else {
     el('note-modal-title').textContent = "New Note";
     el('note-edit-id').value = "";
+    // select default yellow radio color
+    const defaultRadio = document.querySelector('input[name="note-color"][value="#fef08a"]');
+    if (defaultRadio) {
+      defaultRadio.checked = true;
+    }
   }
   openModal('note-modal');
 }
@@ -540,6 +701,7 @@ function openEventModal(event = null) {
 
 // Global clock style variable
 let currentClockStyle = 'digital';
+let currentClockFormat = '12hr';
 
 // ── GET SETTINGS & MODELS ──
 async function fetchSettings() {
@@ -553,7 +715,19 @@ async function fetchSettings() {
     el('set-mcp-figma-url').value = data.mcp_figma_url || '';
     currentClockStyle = data.clock_style || 'digital';
     el('set-clock-style').value = currentClockStyle;
+    currentClockFormat = data.clock_format || '12hr';
+    el('set-clock-format').value = currentClockFormat;
     renderClockVisibility();
+    
+    // Hydration break inputs
+    el('set-water-enabled').checked = data.water_reminder_enabled || false;
+    el('set-water-interval').value = data.water_reminder_interval || 60;
+    el('water-interval-group').style.display = data.water_reminder_enabled ? 'block' : 'none';
+    setupWaterReminder(data.water_reminder_enabled, data.water_reminder_interval);
+
+    currentSystemName = data.system_name || 'Mickey';
+    currentAssistantName = data.assistant_name || 'Cookie';
+    applyRenamingUI();
   } catch (e) {
     console.error("Error fetching settings:", e);
   }
@@ -616,7 +790,7 @@ async function loadDashboardData() {
     const res = await apiFetch('/api/dashboard');
     const data = await res.json();
     
-    // Render dashboard tasks widget
+    // Render dashboard tasks widget with completion checkboxes
     const tasksCont = el('dash-tasks-container');
     tasksCont.innerHTML = '';
     if (!data.tasks.length) {
@@ -625,8 +799,18 @@ async function loadDashboardData() {
       data.tasks.forEach(t => {
         const item = document.createElement('div');
         item.className = 'dash-task-item';
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.justifyContent = 'space-between';
+        
+        const isCompleted = t.status === 'completed';
+        const checkedAttr = isCompleted ? 'checked' : '';
+        
         item.innerHTML = `
-          <span>${t.title}</span>
+          <div style="display:flex; align-items:center; gap:0.5rem; flex:1; min-width:0;">
+            <input type="checkbox" class="todo-circle-check" ${checkedAttr} onclick="event.stopPropagation(); toggleTaskCompleteDirect('${t.id}', '${t.status}')">
+            <span class="dash-task-title ${isCompleted ? 'completed' : ''}" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; ${isCompleted ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${t.title}</span>
+          </div>
           <span class="badge badge-${t.priority}">${t.priority}</span>
         `;
         tasksCont.appendChild(item);
@@ -669,6 +853,9 @@ async function loadDashboardData() {
     
     // Load Gmail feed
     loadGmailFeed();
+    
+    // Update Ecosystem Dashboard Widget
+    loadDashboardEcosystemWidget();
   } catch (e) {
     console.error("Error fetching dashboard updates:", e);
   }
@@ -693,6 +880,11 @@ async function loadGmailFeed() {
         }
         const div = document.createElement('div');
         div.className = 'dash-gmail-item';
+        div.style.cursor = 'pointer';
+        div.onclick = () => {
+          Sound.playClick();
+          window.open(`https://mail.google.com/mail/u/0/#search/${encodeURIComponent(item.subject)}`, '_blank');
+        };
         div.innerHTML = `
           <div class="gmail-meta">
             <strong>${item.from}</strong>
@@ -770,32 +962,52 @@ function renderTasksList(tasks) {
   const container = el('tasks-list-container');
   container.innerHTML = '';
   
-  if (currentSort === 'priority') {
-    const priorityWeight = { 'high': 3, 'medium': 2, 'low': 1 };
-    tasks.sort((a, b) => (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2));
-  } else if (currentSort === 'alphabetical') {
-    tasks.sort((a, b) => a.title.localeCompare(b.title));
-  } else if (currentSort === 'due') {
-    tasks.sort((a, b) => {
-      if (!a.due_date) return 1;
-      if (!b.due_date) return -1;
-      return new Date(a.due_date) - new Date(b.due_date);
-    });
-  } else {
-    // default: pending first, then by date created/due
-    tasks.sort((a, b) => {
-      if (a.status !== b.status) {
-        return a.status === 'pending' ? -1 : 1;
-      }
-      return new Date(b.created_at) - new Date(a.created_at);
-    });
+  // Filter tasks based on currentFilter
+  let filteredTasks = [...tasks];
+  if (currentFilter !== 'all') {
+    if (['high', 'medium', 'low'].includes(currentFilter)) {
+      filteredTasks = filteredTasks.filter(t => t.priority === currentFilter);
+    } else if (currentFilter === 'myday') {
+      filteredTasks = filteredTasks.filter(t => {
+        let detailsData = {};
+        if (t.description && t.description.startsWith('{')) {
+          try { detailsData = JSON.parse(t.description); } catch(e){}
+        }
+        return !!detailsData.is_myday;
+      });
+    } else if (currentFilter === 'pending') {
+      filteredTasks = filteredTasks.filter(t => t.status === 'pending');
+    } else if (currentFilter === 'completed') {
+      filteredTasks = filteredTasks.filter(t => t.status === 'completed');
+    }
   }
 
-  if (!tasks.length) {
-    container.innerHTML = '<div class="loading-state">No tasks. Type a task name above and press Enter.</div>';
-    return;
-  }
-
+  // Separate tasks
+  const pendingTasks = filteredTasks.filter(t => t.status === 'pending');
+  const completedTasks = filteredTasks.filter(t => t.status === 'completed');
+  
+  // Sort function helper based on currentSort
+  const sortTasks = (list) => {
+    if (currentSort === 'priority') {
+      const priorityWeight = { 'high': 3, 'medium': 2, 'low': 1 };
+      list.sort((a, b) => (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2));
+    } else if (currentSort === 'alphabetical') {
+      list.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (currentSort === 'due') {
+      list.sort((a, b) => {
+        if (!a.due_date) return 1;
+        if (!b.due_date) return -1;
+        return new Date(a.due_date) - new Date(b.due_date);
+      });
+    } else {
+      // default: new created first
+      list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+  };
+  
+  sortTasks(pendingTasks);
+  sortTasks(completedTasks);
+  
   if (currentView === 'grid') {
     container.style.display = 'grid';
     container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(240px, 1fr))';
@@ -805,8 +1017,8 @@ function renderTasksList(tasks) {
     container.style.flexDirection = 'column';
     container.style.gap = '0.5rem';
   }
-  
-  tasks.forEach(t => {
+
+  const renderRow = (t) => {
     const row = document.createElement('div');
     row.className = `todo-item-row ${selectedTask && selectedTask.id === t.id ? 'active' : ''}`;
     row.onclick = () => openDetailsPane(t);
@@ -843,8 +1055,49 @@ function renderTasksList(tasks) {
         ${t.priority === 'high' ? '★' : '☆'}
       </button>
     `;
-    container.appendChild(row);
+    return row;
+  };
+
+  // Render pending tasks
+  if (pendingTasks.length === 0 && completedTasks.length === 0) {
+    container.innerHTML = '<div class="loading-state">No tasks. Type a task name above and press Enter.</div>';
+    return;
+  }
+  
+  pendingTasks.forEach(t => {
+    container.appendChild(renderRow(t));
   });
+  
+  // Render completed tasks section
+  if (completedTasks.length > 0) {
+    const header = document.createElement('div');
+    header.className = 'completed-tasks-header';
+    header.style.display = 'flex';
+    header.style.alignItems = 'center';
+    header.style.gap = '0.5rem';
+    header.style.marginTop = '1.5rem';
+    header.style.marginBottom = '0.5rem';
+    header.style.cursor = 'pointer';
+    header.style.fontWeight = '600';
+    header.style.fontSize = '0.9rem';
+    header.style.color = 'var(--text-muted)';
+    header.onclick = (e) => {
+      e.stopPropagation();
+      toggleCompletedGroup();
+    };
+    
+    header.innerHTML = `
+      <svg class="chevron-icon" style="transform: rotate(${completedGroupCollapsed ? '-90deg' : '0deg'}); transition: transform 0.2s;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      <span>Completed (${completedTasks.length})</span>
+    `;
+    container.appendChild(header);
+    
+    if (!completedGroupCollapsed) {
+      completedTasks.forEach(t => {
+        container.appendChild(renderRow(t));
+      });
+    }
+  }
 }
 
 // Create new task quickly by typing & enter
@@ -881,6 +1134,7 @@ async function toggleTaskComplete(id, currentStatus) {
   
   if (newStatus === 'completed') {
     Sound.playComplete();
+    syncFocusDelta += 10;
   } else {
     Sound.playClick();
   }
@@ -890,6 +1144,14 @@ async function toggleTaskComplete(id, currentStatus) {
       method: 'PUT',
       body: { status: newStatus }
     });
+    
+    if (newStatus === 'completed') {
+      const task = allTasks.find(t => t.id === id);
+      if (task) {
+        await handleTaskRepeat(task);
+      }
+    }
+    
     await loadTasks();
     
     // If details pane is active on this task, update it
@@ -972,6 +1234,12 @@ function openDetailsPane(task) {
   const remindTime = localStorage.getItem(`mickey_remind_${task.id}`);
   el('details-remind-input').value = remindTime ? remindTime.slice(0, 16) : "";
   el('details-remind-text').textContent = remindTime ? `Remind: ${new Date(remindTime).toLocaleString()}` : "Remind me";
+
+  // Repeat text
+  const repeatVal = detailsData.repeat || "none";
+  el('details-repeat-select').value = repeatVal;
+  const repeatLabel = repeatVal === 'none' ? 'Repeat' : `Repeat: ${repeatVal.charAt(0).toUpperCase() + repeatVal.slice(1)}`;
+  el('details-repeat-text').textContent = repeatLabel;
 
   // Added to My Day text
   const myDayText = el('details-myday-text');
@@ -1199,25 +1467,34 @@ async function loadNotes(query = "") {
       const contentDisplay = n.content || '*No content*';
       const updated = new Date(n.updated_at).toLocaleDateString();
       
-      // Render tags
+      // Render tags and extract color
+      let noteColor = null;
       let tagsHtml = '';
       if (n.tags) {
         n.tags.split(',').forEach(t => {
-          if (t.trim()) {
-            tagsHtml += `<span class="tag">#${t.trim()}</span>`;
+          const trimmed = t.trim();
+          if (trimmed.startsWith('color:')) {
+            noteColor = trimmed.replace('color:', '');
+          } else if (trimmed) {
+            tagsHtml += `<span class="tag">#${trimmed}</span>`;
           }
         });
       }
       
+      if (noteColor) {
+        card.style.backgroundColor = noteColor;
+        card.style.color = '#0f172a';
+      }
+      
       card.innerHTML = `
         <div>
-          <h3>${n.title}</h3>
-          <p>${contentDisplay}</p>
+          <h3 ${noteColor ? 'style="color:#0f172a !important;"' : ''}>${n.title}</h3>
+          <p ${noteColor ? 'style="color:#334155 !important;"' : ''}>${contentDisplay}</p>
         </div>
-        <div class="note-footer">
+        <div class="note-footer" ${noteColor ? 'style="color:#475569 !important;"' : ''}>
           <div class="note-tags-wrap">${tagsHtml}</div>
           <span>Updated ${updated}</span>
-          <button class="btn-text-danger" onclick="event.stopPropagation(); deleteNote('${n.id}')">Delete</button>
+          <button class="btn-text-danger" ${noteColor ? 'style="color:#991b1b !important;"' : ''} onclick="event.stopPropagation(); deleteNote('${n.id}')">Delete</button>
         </div>
       `;
       container.appendChild(card);
@@ -1232,7 +1509,17 @@ async function handleNoteSubmit(e) {
   const id = el('note-edit-id').value;
   const title = el('note-title').value;
   const content = el('note-content').value;
-  const tags = el('note-tags').value;
+  const tagsInput = el('note-tags').value;
+  
+  // Get selected color radio button
+  const colorRadio = document.querySelector('input[name="note-color"]:checked');
+  const selectedColor = colorRadio ? colorRadio.value : '#fef08a';
+  
+  // Combine tagsInput with color tag
+  let tagsList = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : [];
+  tagsList = tagsList.filter(t => !t.startsWith('color:'));
+  tagsList.push(`color:${selectedColor}`);
+  const tags = tagsList.join(', ');
   
   const payload = { title, content, tags: tags || null };
   
@@ -1247,6 +1534,9 @@ async function handleNoteSubmit(e) {
     if (res.ok) {
       closeModal('note-modal');
       Sound.playSuccess();
+      if (method === 'POST') {
+        syncLearningDelta += 15;
+      }
       loadNotes();
     }
   } catch (e) {
@@ -1425,7 +1715,13 @@ async function handleSettingsSubmit(e) {
   const figma_access_token = el('set-figma-token').value;
   const mcp_figma_url = el('set-mcp-figma-url').value;
   const clock_style = el('set-clock-style').value;
+  const clock_format = el('set-clock-format').value;
+  const water_reminder_enabled = el('set-water-enabled').checked;
+  const water_reminder_interval = parseInt(el('set-water-interval').value) || 60;
   
+  const system_name = el('set-system-name').value.trim() || 'Mickey';
+  const assistant_name = el('set-assistant-name').value.trim() || 'Cookie';
+
   const payload = {
     ollama_url: ollama_url || null,
     selected_model: selected_model || null,
@@ -1433,7 +1729,12 @@ async function handleSettingsSubmit(e) {
     gmail_app_password: gmail_app_password || null,
     figma_access_token: figma_access_token || null,
     mcp_figma_url: mcp_figma_url || null,
-    clock_style: clock_style || 'digital'
+    clock_style: clock_style || 'digital',
+    clock_format: clock_format || '12hr',
+    water_reminder_enabled,
+    water_reminder_interval,
+    system_name,
+    assistant_name
   };
   
   try {
@@ -1445,7 +1746,12 @@ async function handleSettingsSubmit(e) {
       alert("Settings saved successfully.");
       Sound.playSuccess();
       currentClockStyle = clock_style;
+      currentClockFormat = clock_format;
       renderClockVisibility();
+      setupWaterReminder(water_reminder_enabled, water_reminder_interval);
+      currentSystemName = system_name;
+      currentAssistantName = assistant_name;
+      applyRenamingUI();
       await fetchModels();
     }
   } catch (e) {
@@ -1520,6 +1826,7 @@ async function handleChatSubmit(e) {
   if (!message) return;
   
   input.value = '';
+  syncLearningDelta += 5;
   
   // Render user bubble immediately
   const container = el('chat-messages');
@@ -1528,10 +1835,17 @@ async function handleChatSubmit(e) {
   userBubble.textContent = message;
   container.appendChild(userBubble);
   
-  // Render loading assistant bubble
+  // Render loading assistant bubble with bouncing loading dots
   const assistantBubble = document.createElement('div');
   assistantBubble.className = 'message-bubble assistant';
-  assistantBubble.innerHTML = '<em>Mickey is thinking...</em>';
+  assistantBubble.innerHTML = `
+    <div class="typing-indicator" style="display:inline-flex;">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <span style="font-size:0.75rem; color:var(--text-muted); margin-left:0.5rem;">${currentAssistantName} is thinking...</span>
+  `;
   container.appendChild(assistantBubble);
   
   scrollToBottom('chat-messages');
@@ -1549,17 +1863,17 @@ async function handleChatSubmit(e) {
       body: payload
     });
     
-    if (!response.body) {
-      assistantBubble.textContent = "Error: Streaming is unsupported by server response.";
+    if (!response.ok || !response.body) {
+      assistantBubble.innerHTML = "Error: Streaming is unsupported or server returned error.";
       return;
     }
     
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    assistantBubble.innerHTML = '';
     
     let fullText = '';
     let effortsStartJson = null;
+    let clearedIndicator = false;
     
     while (true) {
       const { value, done } = await reader.read();
@@ -1575,6 +1889,12 @@ async function handleChatSubmit(e) {
         continue;
       }
       
+      // Clear the typing dots indicator on the first actual content chunk
+      if (!clearedIndicator) {
+        assistantBubble.innerHTML = '';
+        clearedIndicator = true;
+      }
+      
       // Handle reasoning efforts block
       if (chunk.includes('__efforts_start__:')) {
         const parts = chunk.split('__efforts_start__:');
@@ -1584,7 +1904,7 @@ async function handleChatSubmit(e) {
         // Append clickable Efforts reasoning line
         const link = document.createElement('div');
         link.className = 'efforts-line';
-        link.innerHTML = `<span>🔍 Reasoning: Invoking Mickey tool <strong>"${effortsStartJson.tool}"</strong></span>`;
+        link.innerHTML = `<span>🔍 Reasoning: Invoking tool <strong>"${effortsStartJson.tool}"</strong></span>`;
         link.onclick = () => openEffortsPopup(effortsStartJson, { status: "pending" });
         assistantBubble.appendChild(link);
         scrollToBottom('chat-messages');
@@ -1600,7 +1920,7 @@ async function handleChatSubmit(e) {
         const links = assistantBubble.querySelectorAll('.efforts-line');
         if (links.length > 0) {
           const lastLink = links[links.length - 1];
-          lastLink.innerHTML = `<span>✓ Completed Mickey tool <strong>"${effortsStartJson.tool}"</strong> (view detailed efforts logs)</span>`;
+          lastLink.innerHTML = `<span>✓ Completed tool <strong>"${effortsStartJson.tool}"</strong> (view detailed efforts logs)</span>`;
           lastLink.onclick = () => openEffortsPopup(effortsStartJson, effortsResultJson);
         }
         continue;
@@ -1625,7 +1945,7 @@ async function handleChatSubmit(e) {
       scrollToBottom('chat-messages');
     }
   } catch (e) {
-    assistantBubble.textContent = "Connection failed. Please ensure Ollama is serving on the backend.";
+    assistantBubble.innerHTML = "Connection failed. Please ensure Ollama is serving on the backend.";
   }
 }
 
@@ -1633,7 +1953,7 @@ function startNewChat() {
   activeConversationId = null;
   el('chat-messages').innerHTML = `
     <div class="system-bubble">
-      New conversation started with Mickey. Ask me questions about your tasks, notes, or calendar scheduling.
+      New conversation started with ${currentAssistantName}. Ask me questions about your tasks, notes, or calendar scheduling.
     </div>
   `;
   loadConversations();
@@ -1771,6 +2091,11 @@ async function loadGmailPanel() {
         
         const card = document.createElement('div');
         card.className = 'gmail-panel-item';
+        card.style.cursor = 'pointer';
+        card.onclick = () => {
+          Sound.playClick();
+          window.open(`https://mail.google.com/mail/u/0/#search/${encodeURIComponent(item.subject)}`, '_blank');
+        };
         card.innerHTML = `
           <div class="gmail-avatar">${initial}</div>
           <div class="gmail-item-content">
@@ -1852,3 +2177,1111 @@ async function deleteEvent(id) {
     console.error(e);
   }
 }
+
+// ── HYDRATION REMINDER SCHEDULER ──
+let waterReminderTimer = null;
+
+function setupWaterReminder(enabled, intervalMinutes) {
+  if (waterReminderTimer) {
+    clearInterval(waterReminderTimer);
+    waterReminderTimer = null;
+  }
+  
+  if (!enabled || !intervalMinutes || intervalMinutes <= 0) return;
+  
+  const intervalMs = intervalMinutes * 60 * 1000;
+  
+  waterReminderTimer = setInterval(() => {
+    triggerHydrationBreak();
+  }, intervalMs);
+}
+
+function triggerHydrationBreak() {
+  Sound.playSuccess();
+  
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.position = 'fixed';
+    container.style.top = '1.5rem';
+    container.style.right = '1.5rem';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '0.75rem';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+  }
+  
+  const toast = document.createElement('div');
+  toast.className = 'notif-toast';
+  toast.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+      <strong style="font-weight:600; color:var(--primary);">Hydration Break! 💧</strong>
+      <button type="button" class="close-toast-btn" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.15rem;">&times;</button>
+    </div>
+    <span style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">Did you hydrate just now?</span>
+    <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+      <button class="toast-btn toast-btn-no" style="background:var(--bg-app); border:1px solid var(--border); color:var(--text-muted); padding:0.25rem 0.6rem; font-size:0.75rem; border-radius:var(--radius); cursor:pointer; font-weight:500;">No</button>
+      <button class="toast-btn toast-btn-yes" style="background:var(--primary); border:none; color:white; padding:0.25rem 0.6rem; font-size:0.75rem; border-radius:var(--radius); cursor:pointer; font-weight:500;">Yes (+10 pts)</button>
+    </div>
+  `;
+  
+  const closeBtn = toast.querySelector('.close-toast-btn');
+  const yesBtn = toast.querySelector('.toast-btn-yes');
+  const noBtn = toast.querySelector('.toast-btn-no');
+  
+  const dismissToast = () => {
+    toast.style.animation = 'toast-slide-out 0.3s ease forwards';
+    toast.addEventListener('animationend', () => {
+      toast.remove();
+    });
+  };
+  
+  closeBtn.onclick = dismissToast;
+  
+  yesBtn.addEventListener('click', async () => {
+    syncBreakDelta += 10;
+    Sound.playSuccess();
+    dismissToast();
+    await syncEcosystemData();
+  });
+  
+  noBtn.addEventListener('click', () => {
+    Sound.playClick();
+    dismissToast();
+  });
+  
+  setTimeout(() => {
+    if (toast.parentElement) dismissToast();
+  }, 10000);
+  
+  container.appendChild(toast);
+}
+
+// ── COMPLETED GROUPING & DIRECT CHECKOFFS ──
+let completedGroupCollapsed = localStorage.getItem('mickey_completed_collapsed') === 'true';
+
+function toggleCompletedGroup() {
+  completedGroupCollapsed = !completedGroupCollapsed;
+  localStorage.setItem('mickey_completed_collapsed', completedGroupCollapsed);
+  Sound.playClick();
+  renderTasksList(allTasks);
+}
+
+async function toggleTaskCompleteDirect(id, currentStatus) {
+  const newStatus = currentStatus === 'pending' ? 'completed' : 'pending';
+  if (newStatus === 'completed') {
+    Sound.playComplete();
+    syncFocusDelta += 10;
+  } else {
+    Sound.playClick();
+  }
+  try {
+    await apiFetch(`/api/tasks/${id}`, {
+      method: 'PUT',
+      body: { status: newStatus }
+    });
+    
+    if (newStatus === 'completed') {
+      const task = allTasks.find(t => t.id === id);
+      if (task) {
+        await handleTaskRepeat(task);
+      } else {
+        try {
+          const res = await apiFetch('/api/tasks');
+          const tasks = await res.json();
+          const t = tasks.find(item => item.id === id);
+          if (t) await handleTaskRepeat(t);
+        } catch (err){}
+      }
+    }
+    
+    loadDashboardData();
+    if (currentTab === 'tasks') {
+      loadTasks();
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// ── DRAG AND DROP WIDGETS REORDERING ──
+function setupDragAndDrop() {
+  const grid = el('dashboard-widgets-grid');
+  if (!grid) return;
+  
+  const cards = grid.querySelectorAll('.dashboard-card');
+  cards.forEach(card => {
+    card.setAttribute('draggable', 'true');
+    
+    card.addEventListener('dragstart', (e) => {
+      card.classList.add('drag-active');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.id);
+    });
+    
+    card.addEventListener('dragend', () => {
+      card.classList.remove('drag-active');
+      saveDashboardWidgetsOrder();
+    });
+    
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      
+      const draggingCard = grid.querySelector('.drag-active');
+      if (draggingCard && draggingCard !== card) {
+        const children = Array.from(grid.children);
+        const draggingIdx = children.indexOf(draggingCard);
+        const targetIdx = children.indexOf(card);
+        
+        if (draggingIdx < targetIdx) {
+          grid.insertBefore(draggingCard, card.nextSibling);
+        } else {
+          grid.insertBefore(draggingCard, card);
+        }
+      }
+    });
+  });
+}
+
+function saveDashboardWidgetsOrder() {
+  const grid = el('dashboard-widgets-grid');
+  if (!grid) return;
+  const cards = Array.from(grid.children);
+  const orderIds = cards.map(c => c.id);
+  localStorage.setItem(`mickey_dashboard_order_${activeWorkspaceMode}`, JSON.stringify(orderIds));
+}
+
+function applyDashboardWidgetsOrder() {
+  const grid = el('dashboard-widgets-grid');
+  if (!grid) return;
+  
+  const savedOrder = localStorage.getItem(`mickey_dashboard_order_${activeWorkspaceMode}`);
+  if (!savedOrder) return;
+  
+  try {
+    const orderIds = JSON.parse(savedOrder);
+    const cards = Array.from(grid.children);
+    orderIds.forEach(id => {
+      const card = cards.find(c => c.id === id);
+      if (card) {
+        grid.appendChild(card);
+      }
+    });
+  } catch (e) {
+    console.error("Failed to parse saved widget order", e);
+  }
+}
+
+// ── CUSTOM DYNAMIC RENAME & ECOSYSTEM TELEMETRY SYSTEM ──
+
+function applyRenamingUI() {
+  document.title = `${currentSystemName} Workspace`;
+  
+  const sidebarLogo = document.querySelector('.logo > span');
+  if (sidebarLogo) sidebarLogo.textContent = currentSystemName;
+  
+  const gatewayLogo = document.querySelector('.bio-logo > span');
+  if (gatewayLogo) gatewayLogo.textContent = `${currentSystemName} Gateway`;
+  
+  const activeChatTitle = el('active-chat-title');
+  if (activeChatTitle) activeChatTitle.textContent = currentAssistantName;
+  
+  const chatInput = el('chat-input');
+  if (chatInput) chatInput.placeholder = `Ask ${currentAssistantName} workspace agent...`;
+  
+  const setSystemName = el('set-system-name');
+  if (setSystemName && document.activeElement !== setSystemName) {
+    setSystemName.value = currentSystemName;
+  }
+  const setAssistantName = el('set-assistant-name');
+  if (setAssistantName && document.activeElement !== setAssistantName) {
+    setAssistantName.value = currentAssistantName;
+  }
+
+  const systemBubble = document.querySelector('#chat-messages .system-bubble');
+  if (systemBubble && systemBubble.textContent.includes('Welcome to your self-hosted AI Assistant')) {
+    systemBubble.innerHTML = `
+      Welcome to your self-hosted AI Assistant ${currentAssistantName}! I can help you manage your daily productivity. Ask me things like:
+      <ul>
+        <li>"What tasks are due today?"</li>
+        <li>"Summarize my notes."</li>
+        <li>"Create a task to review the Figma project on Friday."</li>
+        <li>"List recent emails from Gmail."</li>
+      </ul>
+    `;
+  }
+}
+
+function tickScreenTime() {
+  const now = Date.now();
+  const deltaMs = now - lastTickTime;
+  lastTickTime = now;
+  
+  const deltaSec = Math.round(deltaMs / 1000);
+  if (deltaSec <= 0) return;
+
+  if (deltaSec > 5) {
+    syncSleepDelta += deltaSec;
+    lastActivityTime = now;
+    return;
+  }
+
+  const isSessionActive = sessionStorage.getItem('mickey_session_active') === 'true';
+  const bioGateway = el('biometric-gateway');
+  const isLocked = !isSessionActive || (bioGateway && bioGateway.style.display !== 'none');
+  
+  if (isLocked) {
+    syncLockedDelta += deltaSec;
+    return;
+  }
+
+  const idleTimeMs = now - lastActivityTime;
+  if (idleTimeMs >= idleThreshold) {
+    syncIdleDelta += deltaSec;
+  } else {
+    syncActiveDelta += deltaSec;
+  }
+}
+
+async function syncEcosystemData() {
+  if (syncActiveDelta === 0 && 
+      syncIdleDelta === 0 && 
+      syncLockedDelta === 0 && 
+      syncSleepDelta === 0 && 
+      syncFocusDelta === 0 && 
+      syncLearningDelta === 0 && 
+      syncBreakDelta === 0) {
+    return;
+  }
+
+  const payload = {
+    active_time: syncActiveDelta,
+    idle_time: syncIdleDelta,
+    locked_time: syncLockedDelta,
+    sleep_time: syncSleepDelta,
+    focus_delta: syncFocusDelta,
+    learning_delta: syncLearningDelta,
+    break_delta: syncBreakDelta
+  };
+
+  syncActiveDelta = 0;
+  syncIdleDelta = 0;
+  syncLockedDelta = 0;
+  syncSleepDelta = 0;
+  syncFocusDelta = 0;
+  syncLearningDelta = 0;
+  syncBreakDelta = 0;
+
+  try {
+    const res = await apiFetch('/api/ecosystem/sync', {
+      method: 'POST',
+      body: payload
+    });
+    if (res.ok) {
+      console.log("Ecosystem data synced.");
+      if (currentTab === 'ecosystem') {
+        loadEcosystemPage();
+      } else if (currentTab === 'analytics') {
+        loadAnalyticsPage();
+      } else if (currentTab === 'dashboard') {
+        loadDashboardData();
+      }
+    } else {
+      syncActiveDelta += payload.active_time;
+      syncIdleDelta += payload.idle_time;
+      syncLockedDelta += payload.locked_time;
+      syncSleepDelta += payload.sleep_time;
+      syncFocusDelta += payload.focus_delta;
+      syncLearningDelta += payload.learning_delta;
+      syncBreakDelta += payload.break_delta;
+    }
+  } catch (e) {
+    console.error("Failed to sync ecosystem:", e);
+    syncActiveDelta += payload.active_time;
+    syncIdleDelta += payload.idle_time;
+    syncLockedDelta += payload.locked_time;
+    syncSleepDelta += payload.sleep_time;
+    syncFocusDelta += payload.focus_delta;
+    syncLearningDelta += payload.learning_delta;
+    syncBreakDelta += payload.break_delta;
+  }
+}
+
+function getStageInfo(activeHours) {
+  const STAGES = [
+    { name: "Seed", emoji: "🌱", hours: 0 },
+    { name: "Sprout", emoji: "🌿", hours: 5 },
+    { name: "Grassland", emoji: "🌾", hours: 10 },
+    { name: "Small Garden", emoji: "🌳", hours: 20 },
+    { name: "Garden", emoji: "🌲", hours: 40 },
+    { name: "Park", emoji: "🌴", hours: 60 },
+    { name: "Village", emoji: "🏡", hours: 80 },
+    { name: "Town", emoji: "🏘️", hours: 100 },
+    { name: "Forest", emoji: "🌳", hours: 140 },
+    { name: "Valley", emoji: "🏞️", hours: 180 },
+    { name: "Continent", emoji: "🌍", hours: 220 },
+    { name: "Ecosystem World", emoji: "🌎", hours: 240 }
+  ];
+
+  let currentIdx = 0;
+  for (let i = 0; i < STAGES.length; i++) {
+    if (activeHours >= STAGES[i].hours) {
+      currentIdx = i;
+    }
+  }
+
+  const currentStage = STAGES[currentIdx];
+  let progress = 100;
+  let nextText = "Fully evolved!";
+  
+  if (currentIdx < STAGES.length - 1) {
+    const nextStage = STAGES[currentIdx + 1];
+    progress = ((activeHours - currentStage.hours) / (nextStage.hours - currentStage.hours)) * 100;
+    progress = Math.min(100, Math.max(0, progress));
+    nextText = `Next Stage: ${nextStage.name} at ${nextStage.hours} hours`;
+  }
+
+  return {
+    name: currentStage.name,
+    emoji: currentStage.emoji,
+    progress: progress,
+    nextText: nextText
+  };
+}
+
+async function loadEcosystemPage() {
+  try {
+    const res = await apiFetch('/api/ecosystem/status');
+    const data = await res.json();
+    
+    const isSessionActive = sessionStorage.getItem('mickey_session_active') === 'true';
+    const isLocked = !isSessionActive || (el('biometric-gateway') && el('biometric-gateway').style.display !== 'none');
+    const isIdle = (Date.now() - lastActivityTime >= idleThreshold);
+    
+    let statusText = "🟢 Growing";
+    if (isLocked) statusText = "⏸ Paused (Locked)";
+    else if (isIdle) statusText = "⏸ Paused (Idle)";
+    
+    if (el('ecosystem-growth-status')) {
+      el('ecosystem-growth-status').textContent = statusText;
+      if (statusText === "🟢 Growing") {
+        el('ecosystem-growth-status').style.backgroundColor = "rgba(16, 185, 129, 0.15)";
+        el('ecosystem-growth-status').style.color = "var(--success)";
+      } else {
+        el('ecosystem-growth-status').style.backgroundColor = "rgba(239, 68, 68, 0.15)";
+        el('ecosystem-growth-status').style.color = "var(--danger)";
+      }
+    }
+    
+    const activeHours = data.active_hours || 0.0;
+    const stageInfo = getStageInfo(activeHours);
+    
+    if (el('ecosystem-health-score-badge')) {
+      el('ecosystem-health-score-badge').textContent = `Health: ${data.health_score}%`;
+      if (data.health_score >= 80) {
+        el('ecosystem-health-score-badge').style.color = "var(--success)";
+        el('ecosystem-health-score-badge').style.backgroundColor = "rgba(16, 185, 129, 0.15)";
+      } else if (data.health_score >= 50) {
+        el('ecosystem-health-score-badge').style.color = "var(--warning)";
+        el('ecosystem-health-score-badge').style.backgroundColor = "rgba(245, 158, 11, 0.15)";
+      } else {
+        el('ecosystem-health-score-badge').style.color = "var(--danger)";
+        el('ecosystem-health-score-badge').style.backgroundColor = "rgba(239, 68, 68, 0.15)";
+      }
+    }
+    
+    if (el('ecosystem-stage-emoji')) el('ecosystem-stage-emoji').textContent = stageInfo.emoji;
+    if (el('ecosystem-stage-name')) el('ecosystem-stage-name').textContent = stageInfo.name;
+    if (el('ecosystem-active-hours')) el('ecosystem-active-hours').textContent = `${activeHours.toFixed(2)} hours active`;
+    if (el('ecosystem-stage-progress')) el('ecosystem-stage-progress').style.width = `${stageInfo.progress}%`;
+    if (el('ecosystem-next-stage-text')) el('ecosystem-next-stage-text').textContent = stageInfo.nextText;
+    
+    const lf = data.lifetime || { focus: 0, learning: 0, break: 0, pollution: 0 };
+    if (el('eco-param-focus')) el('eco-param-focus').textContent = `${lf.focus} points`;
+    if (el('eco-param-learning')) el('eco-param-learning').textContent = `${lf.learning} points`;
+    if (el('eco-param-breaks')) el('eco-param-breaks').textContent = `${lf.break} points`;
+    if (el('eco-param-pollution')) el('eco-param-pollution').textContent = `${lf.pollution} points`;
+    
+    const canvas = el('ecosystem-canvas');
+    if (canvas) {
+      drawEcosystem(canvas, data.health_score, lf.focus, lf.learning, lf.break, lf.pollution, stageInfo.name);
+    }
+  } catch (err) {
+    console.error("Error loading ecosystem page:", err);
+  }
+}
+
+function drawEcosystem(canvas, health, focus, learning, breaks, pollution, stage) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  // 1. Draw background voxel sky
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+  if (health >= 80) {
+    skyGrad.addColorStop(0, '#1a103c');
+    skyGrad.addColorStop(0.6, '#312e81');
+    skyGrad.addColorStop(1, '#4338ca');
+  } else if (health >= 50) {
+    skyGrad.addColorStop(0, '#2e1065');
+    skyGrad.addColorStop(0.6, '#475569');
+    skyGrad.addColorStop(1, '#d97706');
+  } else {
+    skyGrad.addColorStop(0, '#0f172a');
+    skyGrad.addColorStop(0.6, '#334155');
+    skyGrad.addColorStop(1, '#475569');
+  }
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  // 2. Draw Minecraft sun or moon (square box style!)
+  ctx.fillStyle = health >= 50 ? '#fef08a' : '#f97316';
+  ctx.shadowColor = health >= 50 ? '#eab308' : '#ef4444';
+  ctx.shadowBlur = health >= 80 ? 15 : 5;
+  ctx.fillRect(w - 120, 60, 40, 40);
+  ctx.shadowBlur = 0; // reset blur
+
+  // Helper function to draw a 3D isometric block (cube)
+  function drawCube(cx, cy, size, type) {
+    const rx = size * 0.866;
+    const ry = size * 0.5;
+    
+    let colors = {};
+    if (type === 'grass') {
+      colors = { top: '#5b8731', left: '#5c4033', right: '#4b3226' };
+    } else if (type === 'dirt') {
+      colors = { top: '#76533f', left: '#5c4033', right: '#4b3226' };
+    } else if (type === 'water') {
+      colors = { top: '#1d4ed8', left: '#1e40af', right: '#1e3a8a' };
+    } else if (type === 'stone') {
+      colors = { top: '#78716c', left: '#57534e', right: '#44403c' };
+    } else if (type === 'brick') {
+      colors = { top: '#b45309', left: '#92400e', right: '#78350f' };
+    } else if (type === 'wood') {
+      colors = { top: '#d97706', left: '#78350f', right: '#451a03' };
+    } else if (type === 'leaves') {
+      colors = { top: '#15803d', left: '#166534', right: '#14532d' };
+    } else if (type === 'pollution') {
+      colors = { top: '#27272a', left: '#18181b', right: '#09090b' };
+    } else if (type === 'cloud') {
+      colors = { top: '#f8fafc', left: '#f1f5f9', right: '#e2e8f0' };
+    }
+
+    // Top Face (Rhombus)
+    ctx.fillStyle = colors.top;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - size);
+    ctx.lineTo(cx + rx, cy - ry);
+    ctx.lineTo(cx, cy);
+    ctx.lineTo(cx - rx, cy - ry);
+    ctx.closePath();
+    ctx.fill();
+
+    // Left Face (Parallelogram)
+    ctx.fillStyle = colors.left;
+    ctx.beginPath();
+    ctx.moveTo(cx - rx, cy - ry);
+    ctx.lineTo(cx, cy);
+    ctx.lineTo(cx, cy + size);
+    ctx.lineTo(cx - rx, cy + size - ry);
+    ctx.closePath();
+    ctx.fill();
+
+    // Right Face (Parallelogram)
+    ctx.fillStyle = colors.right;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + rx, cy - ry);
+    ctx.lineTo(cx + rx, cy + size - ry);
+    ctx.lineTo(cx, cy + size);
+    ctx.closePath();
+    ctx.fill();
+
+    // Custom overlay details for Minecraft grass sides
+    if (type === 'grass') {
+      ctx.fillStyle = '#5b8731';
+      // Left Face grass trim overlay
+      ctx.beginPath();
+      ctx.moveTo(cx - rx, cy - ry);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(cx, cy + size * 0.25);
+      ctx.lineTo(cx - rx * 0.5, cy - ry * 0.5 + size * 0.15);
+      ctx.lineTo(cx - rx, cy - ry + size * 0.25);
+      ctx.closePath();
+      ctx.fill();
+
+      // Right Face grass trim overlay
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + rx, cy - ry);
+      ctx.lineTo(cx + rx, cy - ry + size * 0.25);
+      ctx.lineTo(cx + rx * 0.5, cy - ry * 0.5 + size * 0.15);
+      ctx.lineTo(cx, cy + size * 0.25);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  // 3. Render 8x8 grid back-to-front
+  const gridWidth = 8;
+  const gridDepth = 8;
+  const size = 16;
+  const rx = size * 0.866;
+  const ry = size * 0.5;
+
+  const startX = w / 2;
+  const startY = h / 2 - 30;
+
+  const occupied = {};
+
+  for (let z = 0; z < 5; z++) {
+    for (let gx = 0; gx < gridWidth; gx++) {
+      for (let gy = 0; gy < gridDepth; gy++) {
+        const cx = startX + (gx - gy) * rx;
+        const cy = startY + (gx + gy) * ry - z * size;
+
+        const coordKey = `${gx},${gy}`;
+
+        if (z === 0) {
+          let blockType = 'grass';
+          if (gx === 3 || gy === 4) {
+            blockType = 'water';
+          } else {
+            const seedVal = (gx * 13 + gy * 27) % 100;
+            const numPollutionBlocks = Math.min(64, Math.floor(pollution / 2));
+            if (seedVal < (numPollutionBlocks * 1.5)) {
+              blockType = 'pollution';
+            } else if (seedVal % 7 === 0) {
+              blockType = 'dirt';
+            }
+          }
+          drawCube(cx, cy, size, blockType);
+          occupied[coordKey] = blockType;
+        } else {
+          const baseBlock = occupied[coordKey];
+          if (baseBlock === 'water' || baseBlock === 'pollution') {
+            if (z === 1 && gx === 3 && gy === 3) {
+              drawCube(cx, cy, size, 'wood');
+            }
+            continue;
+          }
+
+          const randomSeed = (gx * 31 + gy * 79) % 100;
+          const numTrees = Math.min(18, Math.floor(focus / 5));
+          const shouldTree = (randomSeed < (numTrees * 5));
+
+          if (shouldTree) {
+            if (z === 1) {
+              drawCube(cx, cy, size, 'wood');
+            } else if (z === 2) {
+              drawCube(cx, cy, size, 'leaves');
+            }
+            continue;
+          }
+
+          const numHouses = Math.min(6, Math.floor(learning / 15));
+          const shouldHouse = (randomSeed >= 70 && randomSeed < (70 + numHouses * 5));
+          if (shouldHouse) {
+            if (z === 1) {
+              drawCube(cx, cy, size, 'stone');
+            } else if (z === 2) {
+              drawCube(cx, cy, size, 'brick');
+            }
+            continue;
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Draw floaty cloud block layers (z = 4)
+  const numClouds = Math.min(4, Math.floor(breaks / 10));
+  for (let i = 0; i < numClouds; i++) {
+    const cgx = (i * 2 + 1) % gridWidth;
+    const cgy = (i * 3 + 2) % gridDepth;
+    const ccx = startX + (cgx - cgy) * rx + (i * 10);
+    const ccy = startY + (cgx + cgy) * ry - 5 * size;
+    drawCube(ccx, ccy, size, 'cloud');
+  }
+
+  // 5. Draw text overlays
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.font = '700 24px Inter, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(stage, 20, h - 25);
+}
+
+function formatDuration(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${h}h ${m}m`;
+}
+
+async function loadAnalyticsPage(viewType = 'daily') {
+  try {
+    const res = await apiFetch('/api/ecosystem/status');
+    const data = await res.json();
+    
+    const history = data.history || [];
+    let aggregated = [];
+    
+    if (viewType === 'daily') {
+      aggregated = history.slice(-7);
+    } else if (viewType === 'weekly') {
+      const temp = [...history].reverse();
+      const weeks = [];
+      for (let i = 0; i < temp.length; i += 7) {
+        const chunk = temp.slice(i, i + 7);
+        const active = chunk.reduce((sum, item) => sum + item.active_time, 0);
+        const idle = chunk.reduce((sum, item) => sum + item.idle_time, 0);
+        const sleep = chunk.reduce((sum, item) => sum + item.sleep_time, 0);
+        const locked = chunk.reduce((sum, item) => sum + item.locked_time, 0);
+        const focus = chunk.reduce((sum, item) => sum + item.focus_score, 0);
+        const learning = chunk.reduce((sum, item) => sum + item.learning_score, 0);
+        const breakSc = chunk.reduce((sum, item) => sum + item.break_score, 0);
+        
+        const dateLabel = `Wk -${Math.floor(i/7) + 1}`;
+        weeks.push({
+          date: dateLabel,
+          active_time: active,
+          idle_time: idle,
+          sleep_time: sleep,
+          locked_time: locked,
+          focus_score: focus,
+          learning_score: learning,
+          break_score: breakSc
+        });
+      }
+      aggregated = weeks.reverse();
+    } else if (viewType === 'monthly') {
+      const monthsMap = {};
+      history.forEach(item => {
+        const monthKey = item.date.slice(0, 7);
+        if (!monthsMap[monthKey]) {
+          monthsMap[monthKey] = {
+            date: monthKey,
+            active_time: 0,
+            idle_time: 0,
+            sleep_time: 0,
+            locked_time: 0,
+            focus_score: 0,
+            learning_score: 0,
+            break_score: 0
+          };
+        }
+        monthsMap[monthKey].active_time += item.active_time;
+        monthsMap[monthKey].idle_time += item.idle_time;
+        monthsMap[monthKey].sleep_time += item.sleep_time;
+        monthsMap[monthKey].locked_time += item.locked_time;
+        monthsMap[monthKey].focus_score += item.focus_score;
+        monthsMap[monthKey].learning_score += item.learning_score;
+        monthsMap[monthKey].break_score += item.break_score;
+      });
+      aggregated = Object.values(monthsMap).sort((a, b) => a.date.localeCompare(b.date)).slice(-12);
+    } else {
+      aggregated = history.slice(-30);
+    }
+    
+    const totalActive = aggregated.reduce((sum, item) => sum + item.active_time, 0);
+    const totalIdle = aggregated.reduce((sum, item) => sum + item.idle_time, 0);
+    const totalSleep = aggregated.reduce((sum, item) => sum + item.sleep_time, 0);
+    const totalLocked = aggregated.reduce((sum, item) => sum + item.locked_time, 0);
+    
+    const totalTime = totalActive + totalIdle + totalSleep + totalLocked;
+    let efficiency = 100;
+    if (totalTime > 0) {
+      efficiency = Math.round((totalActive / totalTime) * 100);
+    }
+    
+    if (el('stat-active')) el('stat-active').textContent = formatDuration(totalActive);
+    if (el('stat-idle')) el('stat-idle').textContent = formatDuration(totalIdle);
+    if (el('stat-sleep-lock')) el('stat-sleep-lock').textContent = formatDuration(totalSleep + totalLocked);
+    if (el('stat-efficiency')) el('stat-efficiency').textContent = `${efficiency}%`;
+    
+    const durationsCanvas = el('chart-durations');
+    const healthCanvas = el('chart-health');
+    
+    if (durationsCanvas) {
+      drawBarChart(durationsCanvas, aggregated);
+    }
+    if (healthCanvas) {
+      drawLineChart(healthCanvas, aggregated);
+    }
+  } catch (err) {
+    console.error("Error loading analytics page:", err);
+  }
+}
+
+function drawBarChart(canvas, data) {
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * (window.devicePixelRatio || 1);
+  canvas.height = rect.height * (window.devicePixelRatio || 1);
+  ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  
+  const w = rect.width;
+  const h = rect.height;
+  ctx.clearRect(0, 0, w, h);
+  
+  if (!data || data.length === 0) {
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText("No screen time logs recorded yet.", w / 2, h / 2);
+    return;
+  }
+  
+  const paddingLeft = 50;
+  const paddingRight = 20;
+  const paddingTop = 40;
+  const paddingBottom = 40;
+  
+  const chartW = w - paddingLeft - paddingRight;
+  const chartH = h - paddingTop - paddingBottom;
+  
+  let maxHours = 1;
+  data.forEach(item => {
+    const act = item.active_time / 3600;
+    const idl = item.idle_time / 3600;
+    const slk = (item.sleep_time + item.locked_time) / 3600;
+    const total = act + idl + slk;
+    if (total > maxHours) maxHours = total;
+  });
+  maxHours = Math.ceil(maxHours / 2) * 2;
+  
+  ctx.strokeStyle = varColor('--border');
+  ctx.lineWidth = 1;
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '10px Inter, sans-serif';
+  ctx.textAlign = 'right';
+  
+  const gridLines = 4;
+  for (let i = 0; i <= gridLines; i++) {
+    const val = (maxHours * i) / gridLines;
+    const y = paddingTop + chartH - (chartH * i) / gridLines;
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, y);
+    ctx.lineTo(w - paddingRight, y);
+    ctx.stroke();
+    ctx.fillText(`${val.toFixed(1)}h`, paddingLeft - 10, y + 3);
+  }
+  
+  ctx.strokeStyle = varColor('--border');
+  ctx.beginPath();
+  ctx.moveTo(paddingLeft, paddingTop + chartH);
+  ctx.lineTo(w - paddingRight, paddingTop + chartH);
+  ctx.stroke();
+  
+  const numGroups = data.length;
+  const groupW = chartW / numGroups;
+  const gap = groupW * 0.15;
+  const barW = (groupW - gap * 2) / 3;
+  
+  data.forEach((item, idx) => {
+    const act = item.active_time / 3600;
+    const idl = item.idle_time / 3600;
+    const slk = (item.sleep_time + item.locked_time) / 3600;
+    
+    const groupX = paddingLeft + idx * groupW + gap;
+    
+    const actH = (act / maxHours) * chartH;
+    ctx.fillStyle = varColor('--primary');
+    ctx.fillRect(groupX, paddingTop + chartH - actH, barW, actH);
+    
+    const idlH = (idl / maxHours) * chartH;
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(groupX + barW, paddingTop + chartH - idlH, barW, idlH);
+    
+    const slkH = (slk / maxHours) * chartH;
+    ctx.fillStyle = '#6b7280';
+    ctx.fillRect(groupX + barW * 2, paddingTop + chartH - slkH, barW, slkH);
+    
+    let label = item.date;
+    if (label.length > 5 && label.includes('-')) {
+      label = label.slice(5);
+    }
+    ctx.fillStyle = '#6b7280';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, groupX + barW * 1.5, paddingTop + chartH + 15);
+  });
+  
+  ctx.textAlign = 'left';
+  ctx.font = '10px Inter, sans-serif';
+  
+  ctx.fillStyle = varColor('--primary');
+  ctx.fillRect(paddingLeft, 10, 10, 10);
+  ctx.fillStyle = '#6b7280';
+  ctx.fillText("Active Time", paddingLeft + 15, 18);
+  
+  ctx.fillStyle = '#ef4444';
+  ctx.fillRect(paddingLeft + 110, 10, 10, 10);
+  ctx.fillStyle = '#6b7280';
+  ctx.fillText("Idle Time", paddingLeft + 125, 18);
+  
+  ctx.fillStyle = '#6b7280';
+  ctx.fillRect(paddingLeft + 210, 10, 10, 10);
+  ctx.fillStyle = '#6b7280';
+  ctx.fillText("Sleep / Locked", paddingLeft + 225, 18);
+}
+
+function drawLineChart(canvas, data) {
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * (window.devicePixelRatio || 1);
+  canvas.height = rect.height * (window.devicePixelRatio || 1);
+  ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  
+  const w = rect.width;
+  const h = rect.height;
+  ctx.clearRect(0, 0, w, h);
+  
+  if (!data || data.length === 0) {
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText("No health logs recorded yet.", w / 2, h / 2);
+    return;
+  }
+  
+  const paddingLeft = 50;
+  const paddingRight = 50;
+  const paddingTop = 40;
+  const paddingBottom = 40;
+  
+  const chartW = w - paddingLeft - paddingRight;
+  const chartH = h - paddingTop - paddingBottom;
+  
+  let maxPoints = 10;
+  data.forEach(item => {
+    const pts = item.focus_score + item.learning_score + item.break_score;
+    if (pts > maxPoints) maxPoints = pts;
+  });
+  maxPoints = Math.ceil(maxPoints / 10) * 10;
+  
+  ctx.strokeStyle = varColor('--border');
+  ctx.lineWidth = 1;
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '10px Inter, sans-serif';
+  ctx.textAlign = 'right';
+  
+  const gridLines = 4;
+  for (let i = 0; i <= gridLines; i++) {
+    const pct = (100 * i) / gridLines;
+    const y = paddingTop + chartH - (chartH * i) / gridLines;
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, y);
+    ctx.lineTo(w - paddingRight, y);
+    ctx.stroke();
+    ctx.fillText(`${pct}%`, paddingLeft - 10, y + 3);
+  }
+  
+  ctx.textAlign = 'left';
+  for (let i = 0; i <= gridLines; i++) {
+    const val = (maxPoints * i) / gridLines;
+    const y = paddingTop + chartH - (chartH * i) / gridLines;
+    ctx.fillText(`${val}`, w - paddingRight + 10, y + 3);
+  }
+  
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = '#10b981';
+  ctx.beginPath();
+  
+  const stepX = chartW / (data.length - 1 || 1);
+  
+  data.forEach((item, idx) => {
+    const positive = item.focus_score + item.learning_score + item.break_score;
+    const pollution = Math.floor(item.idle_time / 600);
+    let health = 100;
+    if (positive + pollution > 0) {
+      health = Math.round((positive / (positive + pollution)) * 100);
+    }
+    
+    const x = paddingLeft + idx * stepX;
+    const y = paddingTop + chartH - (health / 100) * chartH;
+    
+    if (idx === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  ctx.stroke();
+  
+  ctx.fillStyle = '#10b981';
+  data.forEach((item, idx) => {
+    const positive = item.focus_score + item.learning_score + item.break_score;
+    const pollution = Math.floor(item.idle_time / 600);
+    let health = 100;
+    if (positive + pollution > 0) {
+      health = Math.round((positive / (positive + pollution)) * 100);
+    }
+    const x = paddingLeft + idx * stepX;
+    const y = paddingTop + chartH - (health / 100) * chartH;
+    
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  
+  ctx.strokeStyle = varColor('--primary');
+  ctx.beginPath();
+  data.forEach((item, idx) => {
+    const pts = item.focus_score + item.learning_score + item.break_score;
+    const x = paddingLeft + idx * stepX;
+    const y = paddingTop + chartH - (pts / maxPoints) * chartH;
+    
+    if (idx === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  ctx.stroke();
+  
+  ctx.fillStyle = varColor('--primary');
+  data.forEach((item, idx) => {
+    const pts = item.focus_score + item.learning_score + item.break_score;
+    const x = paddingLeft + idx * stepX;
+    const y = paddingTop + chartH - (pts / maxPoints) * chartH;
+    
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    let label = item.date;
+    if (label.length > 5 && label.includes('-')) {
+      label = label.slice(5);
+    }
+    ctx.fillStyle = '#6b7280';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, x, paddingTop + chartH + 15);
+  });
+  
+  ctx.textAlign = 'left';
+  ctx.font = '10px Inter, sans-serif';
+  
+  ctx.fillStyle = '#10b981';
+  ctx.fillRect(paddingLeft, 10, 10, 10);
+  ctx.fillStyle = '#6b7280';
+  ctx.fillText("Health Score %", paddingLeft + 15, 18);
+  
+  ctx.fillStyle = varColor('--primary');
+  ctx.fillRect(paddingLeft + 130, 10, 10, 10);
+  ctx.fillStyle = '#6b7280';
+  ctx.fillText("Productivity Points", paddingLeft + 145, 18);
+}
+
+// ── SETTINGS CATEGORIES, REPEATING TASKS & DASHBOARD ECOSYSTEM HELPERS ──
+
+function setupSettingsToggles() {
+  const toggleButtons = document.querySelectorAll('.settings-toggle-btn');
+  if (!toggleButtons.length) return;
+
+  const updateSettingsCards = (sec) => {
+    const cards = document.querySelectorAll('#settings-form .settings-card');
+    cards.forEach((card, idx) => {
+      if (sec === 'integrations') {
+        card.style.display = idx < 3 ? 'block' : 'none';
+      } else {
+        card.style.display = idx >= 3 ? 'block' : 'none';
+      }
+    });
+  };
+
+  toggleButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      Sound.playClick();
+      document.querySelector('.settings-toggle-btn.active').classList.remove('active');
+      btn.classList.add('active');
+      const sec = btn.getAttribute('data-sec');
+      updateSettingsCards(sec);
+    });
+  });
+
+  updateSettingsCards('integrations');
+}
+
+async function loadDashboardEcosystemWidget() {
+  const ecoWidget = el('widget-ecosystem');
+  if (ecoWidget && ecoWidget.style.display !== 'none') {
+    try {
+      const ecoRes = await apiFetch('/api/ecosystem/status');
+      const ecoData = await ecoRes.json();
+      
+      const isSessionActive = sessionStorage.getItem('mickey_session_active') === 'true';
+      const bioGateway = el('biometric-gateway');
+      const isLocked = !isSessionActive || (bioGateway && bioGateway.style.display !== 'none');
+      const isIdle = (Date.now() - lastActivityTime >= idleThreshold);
+      
+      let statusText = "🟢 Growing";
+      if (isLocked) statusText = "⏸ Paused (Locked)";
+      else if (isIdle) statusText = "⏸ Paused (Idle)";
+      
+      const activeHours = ecoData.active_hours || 0.0;
+      const stageInfo = getStageInfo(activeHours);
+      
+      if (el('dash-eco-stage')) el('dash-eco-stage').textContent = `${stageInfo.emoji} ${stageInfo.name}`;
+      if (el('dash-eco-hours')) el('dash-eco-hours').textContent = `${activeHours.toFixed(1)} hours`;
+      if (el('dash-eco-progress')) el('dash-eco-progress').style.width = `${stageInfo.progress}%`;
+      if (el('dash-eco-status')) el('dash-eco-status').textContent = statusText;
+      if (el('dash-eco-health')) el('dash-eco-health').textContent = `Health: ${ecoData.health_score}%`;
+    } catch (err) {
+      console.error("Error loading dashboard ecosystem widget:", err);
+    }
+  }
+}
+
+async function handleTaskRepeat(task) {
+  if (!task) return;
+  let detailsData = {};
+  if (task.description && task.description.startsWith('{')) {
+    try { detailsData = JSON.parse(task.description); } catch(e){}
+  } else {
+    detailsData.notes = task.description || "";
+  }
+  
+  if (detailsData.repeat && detailsData.repeat !== 'none') {
+    const currentDue = task.due_date || new Date().toISOString();
+    const nextDue = calculateNextDueDate(currentDue, detailsData.repeat);
+    
+    let nextDetails = { ...detailsData };
+    if (nextDetails.steps) {
+      nextDetails.steps = nextDetails.steps.map(s => ({ ...s, done: false }));
+    }
+    
+    try {
+      await apiFetch('/api/tasks', {
+        method: 'POST',
+        body: {
+          title: task.title,
+          priority: task.priority,
+          status: 'pending',
+          due_date: nextDue,
+          description: JSON.stringify(nextDetails)
+        }
+      });
+    } catch (err) {
+      console.error("Error creating repeating task copy:", err);
+    }
+  }
+}
+
+function calculateNextDueDate(dueDateStr, repeat) {
+  const date = new Date(dueDateStr);
+  if (isNaN(date.getTime())) return new Date().toISOString();
+  if (repeat === 'daily') {
+    date.setDate(date.getDate() + 1);
+  } else if (repeat === 'weekly') {
+    date.setDate(date.getDate() + 7);
+  } else if (repeat === 'monthly') {
+    date.setMonth(date.getMonth() + 1);
+  } else if (repeat === 'yearly') {
+    date.setFullYear(date.getFullYear() + 1);
+  }
+  return date.toISOString();
+}
+

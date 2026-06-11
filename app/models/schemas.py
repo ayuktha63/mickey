@@ -114,3 +114,25 @@ class SettingsUpdate(BaseModel):
     figma_access_token: Optional[str] = None
     mcp_figma_url: Optional[str] = None
     clock_style: Optional[str] = None
+    water_reminder_enabled: Optional[bool] = None
+    water_reminder_interval: Optional[int] = None
+    system_name: Optional[str] = None
+    assistant_name: Optional[str] = None
+    clock_format: Optional[str] = None
+    # Biometric Sync Keys
+    mickey_face_template: Optional[str] = None
+    mickey_fingerprint_template: Optional[str] = None
+    mickey_username: Optional[str] = None
+    mickey_password: Optional[str] = None
+    mickey_bio_enrolled: Optional[str] = None
+    mickey_pass_enrolled: Optional[str] = None
+
+class SyncEcosystemPayload(BaseModel):
+    active_time: int
+    idle_time: int
+    locked_time: int
+    sleep_time: int
+    focus_delta: int
+    learning_delta: int
+    break_delta: int
+

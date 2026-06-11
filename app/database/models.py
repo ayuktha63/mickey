@@ -72,3 +72,16 @@ class Setting(Base):
     __tablename__ = "settings"
     key = Column(String, primary_key=True, index=True)
     value = Column(Text, nullable=True)
+
+class EcosystemLog(Base):
+    __tablename__ = "ecosystem_logs"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    date = Column(String, unique=True, index=True)  # YYYY-MM-DD
+    active_time = Column(Integer, default=0)       # in seconds
+    idle_time = Column(Integer, default=0)         # in seconds
+    locked_time = Column(Integer, default=0)       # in seconds
+    sleep_time = Column(Integer, default=0)        # in seconds
+    focus_score = Column(Integer, default=0)       # focus points (e.g. task done)
+    learning_score = Column(Integer, default=0)    # learning points (e.g. note created, chat sent)
+    break_score = Column(Integer, default=0)       # break points (e.g. water breaks done)
+

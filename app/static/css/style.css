@@ -195,7 +195,7 @@ body {
 /* Content Area Panels */
 .content-area {
   height: 100%;
-  overflow-y: auto;
+  overflow: hidden;
   position: relative;
 }
 
@@ -205,7 +205,33 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   height: 100%;
+  overflow-y: auto;
 }
+
+.growth-status-badge {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  border-radius: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.growth-status-badge.paused {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: var(--warning);
+}
+.analytics-toggle-btn.active, .settings-toggle-btn.active {
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+}
+.analytics-toggle-btn:hover:not(.active), .settings-toggle-btn:hover:not(.active) {
+  background-color: var(--border);
+  color: var(--text-main);
+}
+
 
 .tab-panel.active {
   display: block;
@@ -1647,25 +1673,53 @@ body {
 
 /* --- Mode Theme Color Overrides --- */
 html.theme-work {
+  --bg-app: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --border: #e2e8f0;
+  --border-focus: #6366f1;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
   --primary: #4f46e5;
   --primary-hover: #4338ca;
-  --border-focus: #6366f1;
 }
 html.dark.theme-work {
+  --bg-app: #09090b;
+  --bg-sidebar: #18181b;
+  --bg-card: #18181b;
+  --bg-input: #09090b;
+  --border: #27272a;
+  --border-focus: #818cf8;
+  --text-main: #f4f4f5;
+  --text-muted: #a1a1aa;
   --primary: #6366f1;
   --primary-hover: #4f46e5;
-  --border-focus: #818cf8;
 }
 
 html.theme-personal {
+  --bg-app: #f0fdf4;
+  --bg-sidebar: #d1fae5;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --border: #a7f3d0;
+  --border-focus: #10b981;
+  --text-main: #064e3b;
+  --text-muted: #047857;
   --primary: #10b981;
   --primary-hover: #059669;
-  --border-focus: #34d399;
 }
 html.dark.theme-personal {
+  --bg-app: #061f1a;
+  --bg-sidebar: #064e3b;
+  --bg-card: #043e30;
+  --bg-input: #022c22;
+  --border: #065f46;
+  --border-focus: #34d399;
+  --text-main: #f0fdf4;
+  --text-muted: #a7f3d0;
   --primary: #34d399;
   --primary-hover: #10b981;
-  --border-focus: #6ee7b7;
 }
 
 /* --- Short and Full label controls --- */
@@ -1860,5 +1914,165 @@ html.dark.theme-personal {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+/* --- Bouncing Typing Indicator --- */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.5rem 0.25rem;
+}
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background-color: var(--text-muted);
+  border-radius: 50%;
+  animation: bounce-dots 1.3s infinite ease-in-out;
+}
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes bounce-dots {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+
+/* --- Drag and Drop Widget Layouts --- */
+.dashboard-card[draggable="true"] {
+  cursor: grab;
+  user-select: none;
+}
+.dashboard-card.drag-active {
+  opacity: 0.4;
+  border: 2px dashed var(--primary) !important;
+}
+
+/* --- Hydration Alarms Toast styling --- */
+.notif-toast {
+  background-color: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-left: 5px solid var(--primary);
+  padding: 1rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  color: var(--text-main);
+  animation: toast-slide-in 0.3s ease forwards;
+}
+@keyframes toast-slide-in {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes toast-slide-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(120%); opacity: 0; }
+}
+
+/* --- Sticky Notes color radios --- */
+.color-picker-grid {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.color-opt {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+.color-opt input {
+  opacity: 0;
+  position: absolute;
+  cursor: pointer;
+}
+.color-opt:has(input:checked) {
+  border-color: #0f172a;
+  box-shadow: 0 0 5px rgba(0,0,0,0.4);
+}
+html.dark .color-opt:has(input:checked) {
+  border-color: #f4f4f5;
+}
+
+/* --- Completed Tasks collapser --- */
+.completed-tasks-header {
+  font-family: inherit;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+.completed-tasks-header:hover {
+  opacity: 0.8;
+}
+
+/* --- Sort dropdown popup --- */
+.sort-popover {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0;
+  min-width: 150px;
+}
+.sort-menu-item {
+  background: none;
+  border: none;
+  color: var(--text-main);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.15s;
+}
+.sort-menu-item:hover {
+  background-color: var(--bg-app);
+}
+
+/* --- Fixed Typing Bar layout overrides --- */
+#panel-chat.tab-panel {
+  padding: 1rem;
+  max-width: none;
+  height: 100%;
+  overflow: hidden;
+}
+#panel-chat.tab-panel.active {
+  display: flex !important;
+  flex-direction: column;
+}
+.chat-layout {
+  height: 100% !important;
+  overflow: hidden;
+}
+.chat-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.chat-messages-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 

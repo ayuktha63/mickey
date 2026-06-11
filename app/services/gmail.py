@@ -17,7 +17,18 @@ def get_gmail_credentials(mode: str = "work") -> tuple[str, str]:
     finally:
         db.close()
 
-async def get_recent_emails(max_results: int = 5, mode: str = "work") -> List[Dict[str, str]]:
+import time
+
+GMAIL_CACHE = {} # Key: mode, Value: (timestamp, emails_list)
+CACHE_TTL = 60 # seconds
+
+async def get_recent_emails(max_results: int = 5, mode: str = "work", bypass_cache: bool = False) -> List[Dict[str, str]]:
+    now = time.time()
+    if not bypass_cache and mode in GMAIL_CACHE:
+        cached_time, cached_emails = GMAIL_CACHE[mode]
+        if now - cached_time < CACHE_TTL:
+            return cached_emails[:max_results]
+
     email_address, app_password = get_gmail_credentials(mode)
     
     if not email_address or not app_password:
@@ -94,6 +105,7 @@ async def get_recent_emails(max_results: int = 5, mode: str = "work") -> List[Di
                         "snippet": snippet
                     })
         mail.logout()
+        GMAIL_CACHE[mode] = (time.time(), results)
         return results
     except Exception as e:
         error_msg = str(e)

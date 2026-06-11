@@ -31,7 +31,7 @@ async def get_available_models(mode: str = "work") -> List[str]:
     return ["llama3.1", "qwen2.5:7b", "mistral"] # fallback list
 
 # Define the tools available to the assistant
-SYSTEM_PROMPT = """You are a highly efficient self-hosted AI Productivity Assistant named Mickey.
+SYSTEM_PROMPT = """You are a highly efficient self-hosted AI Productivity Assistant named Cookie.
 You are connected to the user's workspace database. You have access to the user's Todo/Tasks, Notes, Calendar, and Email (Gmail).
 
 You can use the following tools by outputting a JSON object at the start of your message in the format below:
@@ -230,9 +230,19 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], mode: str = "work")
 
 async def generate_chat_stream(messages: List[Dict[str, str]], model_name: Optional[str] = None, mode: str = "work") -> AsyncGenerator[str, None]:
     import datetime
+    
+    # Query available models from local Ollama tags to prevent 404 error
+    available = await get_available_models(mode=mode)
+    
     if not model_name:
-        model_name = get_db_setting("selected_model", "llama3.1", mode=mode)
+        model_name = get_db_setting("selected_model", "", mode=mode)
         
+    if not model_name or model_name not in available:
+        if available:
+            model_name = available[0]
+        else:
+            model_name = "llama3.1"
+            
     url = f"{get_ollama_url(mode)}/api/chat"
     
     # Inject system prompt

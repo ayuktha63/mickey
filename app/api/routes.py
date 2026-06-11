@@ -8,7 +8,7 @@ from typing import List, Optional
 from pathlib import Path
 
 from app.database.connection import get_db, Base, engines, SessionLocal, get_db_for_mode
-from app.database.models import Task, Note, Event, Conversation, Message, Setting
+from app.database.models import Task, Note, Event, Conversation, Message, Setting, EcosystemLog
 from app.models import schemas
 from app.services import ollama, gmail, mcp
 
@@ -259,7 +259,13 @@ async def list_models(request: Request):
 @router.get("/api/settings")
 def get_settings(db: Session = Depends(get_db)):
     # Retrieve all settings keys
-    keys = ["ollama_url", "selected_model", "gmail_address", "gmail_app_password", "figma_access_token", "mcp_figma_url", "clock_style"]
+    keys = [
+        "ollama_url", "selected_model", "gmail_address", "gmail_app_password", 
+        "figma_access_token", "mcp_figma_url", "clock_style", "water_reminder_enabled", 
+        "water_reminder_interval", "system_name", "assistant_name", "clock_format",
+        "mickey_face_template", "mickey_fingerprint_template", "mickey_username", 
+        "mickey_password", "mickey_bio_enrolled", "mickey_pass_enrolled"
+    ]
     res = {}
     for k in keys:
         row = db.query(Setting).filter(Setting.key == k).first()
@@ -268,21 +274,150 @@ def get_settings(db: Session = Depends(get_db)):
 
 @router.post("/api/settings")
 def save_settings(req: schemas.SettingsUpdate, db: Session = Depends(get_db)):
+    sync_fields = [
+        "system_name", "assistant_name", "clock_format", "clock_style",
+        "mickey_face_template", "mickey_fingerprint_template", "mickey_username", 
+        "mickey_password", "mickey_bio_enrolled", "mickey_pass_enrolled"
+    ]
     for field, value in req.model_dump(exclude_unset=True).items():
         if value is None:
             continue
-        row = db.query(Setting).filter(Setting.key == field).first()
-        if not row:
-            row = Setting(key=field, value=value)
-            db.add(row)
+        if field in sync_fields:
+            from app.database.connection import get_db_for_mode
+            for m in ["work", "personal"]:
+                m_db = get_db_for_mode(m)
+                try:
+                    row = m_db.query(Setting).filter(Setting.key == field).first()
+                    if not row:
+                        row = Setting(key=field, value=str(value))
+                        m_db.add(row)
+                    else:
+                        row.value = str(value)
+                    m_db.commit()
+                except Exception as e:
+                    print(f"Error syncing field {field} for mode {m}:", e)
+                finally:
+                    m_db.close()
         else:
-            row.value = value
+            row = db.query(Setting).filter(Setting.key == field).first()
+            if not row:
+                row = Setting(key=field, value=str(value)) # ensure stored as string
+                db.add(row)
+            else:
+                row.value = str(value)
     db.commit()
     return {"status": "success"}
 
 # ── GMAIL TEST ──
 @router.get("/api/gmail/recent")
-async def check_gmail_emails(request: Request, limit: int = 5):
+async def check_gmail_emails(request: Request, limit: int = 5, bypass_cache: bool = False):
     mode = request.headers.get("x-workspace-mode", "work").lower()
-    emails = await gmail.get_recent_emails(limit, mode=mode)
+    emails = await gmail.get_recent_emails(limit, mode=mode, bypass_cache=bypass_cache)
     return {"emails": emails}
+
+# ── ECOSYSTEM & SCREEN TIME ──
+@router.post("/api/ecosystem/sync")
+def sync_ecosystem(payload: schemas.SyncEcosystemPayload, db: Session = Depends(get_db)):
+    import datetime
+    current_date = datetime.date.today().strftime("%Y-%m-%d")
+    
+    log = db.query(EcosystemLog).filter(EcosystemLog.date == current_date).first()
+    if not log:
+        log = EcosystemLog(
+            date=current_date,
+            active_time=payload.active_time,
+            idle_time=payload.idle_time,
+            locked_time=payload.locked_time,
+            sleep_time=payload.sleep_time,
+            focus_score=payload.focus_delta,
+            learning_score=payload.learning_delta,
+            break_score=payload.break_delta
+        )
+        db.add(log)
+    else:
+        log.active_time += payload.active_time
+        log.idle_time += payload.idle_time
+        log.locked_time += payload.locked_time
+        log.sleep_time += payload.sleep_time
+        log.focus_score += payload.focus_delta
+        log.learning_score += payload.learning_delta
+        log.break_score += payload.break_delta
+    db.commit()
+    return {"status": "success"}
+
+@router.get("/api/ecosystem/status")
+def get_ecosystem_status(db: Session = Depends(get_db)):
+    logs = db.query(EcosystemLog).order_by(EcosystemLog.date.asc()).all()
+    
+    total_active = sum(l.active_time for l in logs)
+    total_idle = sum(l.idle_time for l in logs)
+    total_locked = sum(l.locked_time for l in logs)
+    total_sleep = sum(l.sleep_time for l in logs)
+    
+    total_focus = sum(l.focus_score for l in logs)
+    total_learning = sum(l.learning_score for l in logs)
+    total_break = sum(l.break_score for l in logs)
+    total_pollution = total_idle // 600
+    
+    active_hours = total_active / 3600.0
+    
+    # Growth progression stages (Seed -> Sprout -> Grassland -> Small Garden -> Garden -> Park -> Village -> Town -> Forest -> Valley -> Continent -> Ecosystem World)
+    stage = "🌱 Seed"
+    if active_hours >= 240:
+        stage = "🌎 Ecosystem World"
+    elif active_hours >= 220:
+        stage = "🌍 Continent"
+    elif active_hours >= 180:
+        stage = "🏞️ Valley"
+    elif active_hours >= 140:
+        stage = "🌳 Forest"
+    elif active_hours >= 100:
+        stage = "🏘️ Town"
+    elif active_hours >= 80:
+        stage = "🏡 Village"
+    elif active_hours >= 60:
+        stage = "🌴 Park"
+    elif active_hours >= 40:
+        stage = "🌲 Garden"
+    elif active_hours >= 20:
+        stage = "🌳 Small Garden"
+    elif active_hours >= 10:
+        stage = "🌾 Grassland"
+    elif active_hours >= 5:
+        stage = "🌿 Sprout"
+        
+    positive_sum = total_focus + total_learning + total_break
+    if positive_sum + total_pollution == 0:
+        health_score = 100
+    else:
+        health_score = int(100 * positive_sum / (positive_sum + total_pollution))
+        
+    history = []
+    for l in logs:
+        history.append({
+            "date": l.date,
+            "active_time": l.active_time,
+            "idle_time": l.idle_time,
+            "locked_time": l.locked_time,
+            "sleep_time": l.sleep_time,
+            "focus_score": l.focus_score,
+            "learning_score": l.learning_score,
+            "break_score": l.break_score
+        })
+        
+    return {
+        "active_hours": round(active_hours, 2),
+        "stage": stage,
+        "health_score": health_score,
+        "lifetime": {
+            "active": total_active,
+            "idle": total_idle,
+            "locked": total_locked,
+            "sleep": total_sleep,
+            "focus": total_focus,
+            "learning": total_learning,
+            "break": total_break,
+            "pollution": total_pollution
+        },
+        "history": history
+    }

@@ -22,12 +22,14 @@
       <div class="bio-tabs" id="bio-tabs-container">
         <button id="tab-bio-face" class="bio-tab-btn active">Face Recognition</button>
         <button id="tab-bio-finger" class="bio-tab-btn">Fingerprint (Touch ID)</button>
+        <button id="tab-bio-pass" class="bio-tab-btn">Password Gate</button>
       </div>
 
       <!-- Face Scanner Tab Panel -->
       <div id="panel-bio-face" class="bio-panel active">
         <div class="face-scanner-container">
           <video id="bio-webcam" class="face-video" autoplay playsinline></video>
+          <canvas id="face-landmarks-canvas" width="180" height="180" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
           <div class="face-radar-line"></div>
           <div class="face-scan-bar"></div>
         </div>
@@ -38,10 +40,29 @@
       <!-- Fingerprint Tab Panel -->
       <div id="panel-bio-finger" class="bio-panel">
         <div id="btn-bio-fingerprint-sensor" class="fingerprint-icon-container">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a10 10 0 0 0-8 4M12 2a10 10 0 0 1 8 4M8 10a4 4 0 0 1 8 0M6 14a6 6 0 0 1 12 0M4 18a8 8 0 0 1 16 0M2 22a10 10 0 0 1 20 0"/></svg>
+          <canvas id="fingerprint-canvas" width="120" height="120" style="width: 100%; height: 100%; border-radius: 50%;"></canvas>
         </div>
         <div id="fingerprint-status" class="bio-status-text">Touch the fingerprint scanner (Touch ID sensor) to authenticate.</div>
         <button type="button" id="btn-bio-finger-action" class="btn btn-primary" style="width:100%;">Scan Fingerprint</button>
+      </div>
+
+      <!-- Password Gate Tab Panel -->
+      <div id="panel-bio-pass" class="bio-panel">
+        <div style="width:100%; display:flex; flex-direction:column; gap:0.6rem; text-align:left; margin:0.5rem 0;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="bio-username" style="font-size:0.7rem;">Username</label>
+            <input type="text" id="bio-username" class="form-control" placeholder="Enter username" style="padding:0.4rem 0.6rem;">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="bio-password" style="font-size:0.7rem;">Password</label>
+            <input type="password" id="bio-password" class="form-control" placeholder="Enter password" style="padding:0.4rem 0.6rem;">
+          </div>
+        </div>
+        <div id="pass-status" class="bio-status-text">Enter credentials to authenticate.</div>
+        <div style="display:flex; gap:0.5rem; width:100%;">
+          <button type="button" id="btn-bio-pass-login" class="btn btn-primary" style="flex:1;">Log In</button>
+          <button type="button" id="btn-bio-pass-register" class="btn btn-secondary" style="flex:1;">Register</button>
+        </div>
       </div>
       
       <div style="width:100%; border-top:1px solid var(--border); padding-top:1rem; margin-top:0.5rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
@@ -101,6 +122,14 @@
         <button class="nav-item" data-tab="gmail">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           <span>Gmail</span>
+        </button>
+        <button class="nav-item" data-tab="ecosystem">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <span>Ecosystem</span>
+        </button>
+        <button class="nav-item" data-tab="analytics">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Analytics</span>
         </button>
         <button class="nav-item" data-tab="settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -186,6 +215,9 @@
               <label class="widget-toggle-item" style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; cursor:pointer;">
                 <input type="checkbox" id="toggle-widget-weather" checked> Local Weather
               </label>
+              <label class="widget-toggle-item" style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; cursor:pointer;">
+                <input type="checkbox" id="toggle-widget-ecosystem" checked> Ecosystem Preview
+              </label>
             </div>
             <div class="modal-footer" style="margin-top:1rem; padding-top:0.75rem;">
               <button type="button" class="btn btn-primary" id="apply-customizer-btn">Apply Config</button>
@@ -193,36 +225,36 @@
           </div>
         </div>
 
-        <!-- Clocks Widget Section -->
-        <div id="widget-clocks" class="dashboard-card col-span-2" style="min-height:auto; margin-bottom:1.5rem; display:flex; flex-direction:column; gap:0.75rem;">
-          <div class="card-header" style="margin-bottom:0.25rem;">
-            <h2>Mickey Synchronized World Clocks</h2>
+        <div class="dashboard-grid" id="dashboard-widgets-grid">
+          <!-- Clocks Widget Section -->
+          <div id="widget-clocks" class="dashboard-card col-span-2" style="min-height:auto; display:flex; flex-direction:column; gap:0.75rem;">
+            <div class="card-header" style="margin-bottom:0.25rem;">
+              <h2>Mickey Synchronized World Clocks</h2>
+            </div>
+            <div class="dash-clocks-wrapper">
+              <div class="clock-card">
+                <span class="clock-label">Local Time</span>
+                <span id="clock-local" class="clock-time">12:00:00 AM</span>
+                <canvas id="clock-canvas-local" width="80" height="80" style="display:none; margin: 0.5rem auto 0;"></canvas>
+              </div>
+              <div class="clock-card">
+                <span class="clock-label">New York (EST/EDT)</span>
+                <span id="clock-est" class="clock-time">12:00:00 AM</span>
+                <canvas id="clock-canvas-est" width="80" height="80" style="display:none; margin: 0.5rem auto 0;"></canvas>
+              </div>
+              <div class="clock-card">
+                <span class="clock-label">London (GMT/BST)</span>
+                <span id="clock-london" class="clock-time">12:00:00 AM</span>
+                <canvas id="clock-canvas-london" width="80" height="80" style="display:none; margin: 0.5rem auto 0;"></canvas>
+              </div>
+              <div class="clock-card">
+                <span class="clock-label">Tokyo (JST)</span>
+                <span id="clock-jst" class="clock-time">12:00:00 AM</span>
+                <canvas id="clock-canvas-jst" width="80" height="80" style="display:none; margin: 0.5rem auto 0;"></canvas>
+              </div>
+            </div>
           </div>
-          <div class="dash-clocks-wrapper">
-            <div class="clock-card">
-              <span class="clock-label">Local Time</span>
-              <span id="clock-local" class="clock-time">12:00:00 AM</span>
-              <canvas id="clock-canvas-local" width="80" height="80" style="display:none; margin: 0.5rem auto 0;"></canvas>
-            </div>
-            <div class="clock-card">
-              <span class="clock-label">New York (EST/EDT)</span>
-              <span id="clock-est" class="clock-time">12:00:00 AM</span>
-              <canvas id="clock-canvas-est" width="80" height="80" style="display:none; margin: 0.5rem auto 0;"></canvas>
-            </div>
-            <div class="clock-card">
-              <span class="clock-label">London (GMT/BST)</span>
-              <span id="clock-london" class="clock-time">12:00:00 AM</span>
-              <canvas id="clock-canvas-london" width="80" height="80" style="display:none; margin: 0.5rem auto 0;"></canvas>
-            </div>
-            <div class="clock-card">
-              <span class="clock-label">Tokyo (JST)</span>
-              <span id="clock-jst" class="clock-time">12:00:00 AM</span>
-              <canvas id="clock-canvas-jst" width="80" height="80" style="display:none; margin: 0.5rem auto 0;"></canvas>
-            </div>
-          </div>
-        </div>
-        
-        <div class="dashboard-grid">
+
           <!-- Widget: Todo List -->
           <div id="widget-tasks" class="dashboard-card">
             <div class="card-header">
@@ -288,6 +320,27 @@
               <div class="loading-state">Loading...</div>
             </div>
           </div>
+
+          <!-- Widget: Ecosystem Preview -->
+          <div id="widget-ecosystem" class="dashboard-card">
+            <div class="card-header">
+              <h2>Ecosystem Evolution</h2>
+              <button class="action-link" onclick="switchTab('ecosystem')">Ecosystem</button>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:0.5rem; justify-content:center;">
+              <div style="display:flex; align-items:center; gap:0.5rem; justify-content:space-between;">
+                <span id="dash-eco-stage" style="font-weight:600; font-size:0.95rem;">🌱 Seed</span>
+                <span id="dash-eco-hours" style="font-size:0.75rem; color:var(--text-muted);">0.0 hours</span>
+              </div>
+              <div class="progress-bar-container" style="background-color:var(--border); height:6px; border-radius:3px; overflow:hidden; width:100%;">
+                <div id="dash-eco-progress" style="background-color:var(--primary); height:100%; width:0%;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; color:var(--text-muted); margin-top:0.25rem;">
+                <span id="dash-eco-status">🟢 Growing</span>
+                <span id="dash-eco-health">Health: 100%</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -305,7 +358,7 @@
           </div>
           <div class="chat-main">
             <div class="chat-header">
-              <span id="active-chat-title">Self-Hosted Assistant</span>
+              <span id="active-chat-title">Cookie</span>
               <div class="chat-controls">
                 <select id="chat-model-select" class="form-select select-sm">
                   <option value="">Default Model</option>
@@ -314,7 +367,7 @@
             </div>
             <div id="chat-messages" class="chat-messages-container">
               <div class="system-bubble">
-                Welcome to your self-hosted AI Assistant! I can help you manage your daily productivity. Ask me things like:
+                Welcome to your self-hosted AI Assistant Cookie! I can help you manage your daily productivity. Ask me things like:
                 <ul>
                   <li>"What tasks are due today?"</li>
                   <li>"Summarize my notes."</li>
@@ -325,7 +378,7 @@
             </div>
             <div class="chat-input-area">
               <form id="chat-form">
-                <textarea id="chat-input" placeholder="Ask Mickey workspace agent..." rows="1" required></textarea>
+                <textarea id="chat-input" placeholder="Ask Cookie workspace agent..." rows="1" required></textarea>
                 <button type="submit" id="chat-send-btn" class="send-btn" title="Send Message">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
@@ -352,18 +405,26 @@
             </header>
 
             <div class="todo-top-actions">
-              <button class="action-btn-text" id="todo-sort-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-                <span>Sort</span>
-              </button>
-              <button class="action-btn-text" id="todo-group-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-                <span>Group</span>
-              </button>
-              <button class="action-btn-text" id="todo-suggest-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-                <span>Suggestions</span>
-              </button>
+              <div style="position:relative; display:inline-block;">
+                <button type="button" class="action-btn-text" id="todo-sort-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                  <span>Sort</span>
+                </button>
+                <div id="todo-sort-menu" class="sort-popover" style="display:none;">
+                  <button type="button" class="sort-menu-item" data-sort="default">Default Sort</button>
+                  <button type="button" class="sort-menu-item" data-sort="priority">Priority Sort</button>
+                  <button type="button" class="sort-menu-item" data-sort="alphabetical">Alphabetical Sort</button>
+                  <button type="button" class="sort-menu-item" data-sort="due">Due Date Sort</button>
+                  <div style="border-top: 1px solid var(--border); margin: 4px 0;"></div>
+                  <button type="button" class="sort-menu-item" data-filter="all">All Tasks</button>
+                  <button type="button" class="sort-menu-item" data-filter="high">High Priority Only</button>
+                  <button type="button" class="sort-menu-item" data-filter="medium">Medium Priority Only</button>
+                  <button type="button" class="sort-menu-item" data-filter="low">Low Priority Only</button>
+                  <button type="button" class="sort-menu-item" data-filter="myday">My Day Only</button>
+                  <button type="button" class="sort-menu-item" data-filter="pending">Pending Only</button>
+                  <button type="button" class="sort-menu-item" data-filter="completed">Completed Only</button>
+                </div>
+              </div>
             </div>
 
             <!-- Add Task Bar -->
@@ -406,22 +467,29 @@
                   <span id="details-myday-text">Added to My Day</span>
                 </button>
                 
-                <button class="details-row-btn" id="details-remind-btn">
+                <div class="details-row-btn" id="details-remind-btn" role="button">
                   <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                   <span id="details-remind-text">Remind me</span>
-                  <input type="datetime-local" id="details-remind-input" class="hidden-datetime-picker" style="opacity: 0; position: absolute; width: 100%; left: 0; cursor: pointer;">
-                </button>
+                  <input type="datetime-local" id="details-remind-input" class="hidden-datetime-picker" style="opacity: 0; position: absolute; width: 100%; height: 100%; left: 0; top: 0; cursor: pointer; z-index: 10;">
+                </div>
 
-                <button class="details-row-btn" id="details-due-btn">
+                <div class="details-row-btn" id="details-due-btn" role="button">
                   <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   <span id="details-due-text">Add due date</span>
-                  <input type="date" id="details-due-input" class="hidden-date-picker" style="opacity: 0; position: absolute; width: 100%; left: 0; cursor: pointer;">
-                </button>
+                  <input type="date" id="details-due-input" class="hidden-date-picker" style="opacity: 0; position: absolute; width: 100%; height: 100%; left: 0; top: 0; cursor: pointer; z-index: 10;">
+                </div>
 
-                <button class="details-row-btn" id="details-repeat-btn">
+                <div class="details-row-btn" id="details-repeat-btn" role="button">
                   <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
                   <span id="details-repeat-text">Repeat</span>
-                </button>
+                  <select id="details-repeat-select" class="hidden-select-picker" style="opacity: 0; position: absolute; width: 100%; height: 100%; left: 0; top: 0; cursor: pointer; z-index: 10; background: transparent; border: none; outline: none; -webkit-appearance: none;">
+                    <option value="none">Repeat: None</option>
+                    <option value="daily">Repeat: Daily</option>
+                    <option value="weekly">Repeat: Weekly</option>
+                    <option value="monthly">Repeat: Monthly</option>
+                    <option value="yearly">Repeat: Yearly</option>
+                  </select>
+                </div>
               </div>
 
               <!-- Description / Notes -->
@@ -501,9 +569,15 @@
 
       <!-- Panel: Settings -->
       <section id="panel-settings" class="tab-panel">
-        <header class="panel-header">
-          <h1>System Configuration</h1>
-          <p class="subtitle">Verify local model servers, Gmail, and Figma integrations.</p>
+        <header class="panel-header-split">
+          <div>
+            <h1>System Configuration</h1>
+            <p class="subtitle">Verify local model servers, Gmail, and Figma integrations.</p>
+          </div>
+          <div class="settings-nav-toggles" style="display:flex; background-color:var(--bg-sidebar); border:1px solid var(--border); border-radius:var(--radius); padding:2px;">
+            <button type="button" class="settings-toggle-btn active" data-sec="integrations" style="background:none; border:none; border-radius:var(--radius); color:var(--text-muted); font-size:0.75rem; padding:0.4rem 0.8rem; cursor:pointer; font-weight:500; transition:all 0.15s;">Integrations</button>
+            <button type="button" class="settings-toggle-btn" data-sec="system" style="background:none; border:none; border-radius:var(--radius); color:var(--text-muted); font-size:0.75rem; padding:0.4rem 0.8rem; cursor:pointer; font-weight:500; transition:all 0.15s;">System Settings</button>
+          </div>
         </header>
 
         <form id="settings-form" class="settings-form">
@@ -551,6 +625,34 @@
           </div>
 
           <div class="settings-card">
+            <h2>Hydration Break Reminders</h2>
+            <p class="card-desc">Keep healthy. Configure system popups and chimes to remind you to drink water.</p>
+            <div class="form-checkbox">
+              <input type="checkbox" id="set-water-enabled">
+              <label for="set-water-enabled">Enable Hydration Reminders</label>
+            </div>
+            <div class="form-group" id="water-interval-group" style="display:none;">
+              <label for="set-water-interval">Reminder Interval (minutes)</label>
+              <input type="number" id="set-water-interval" class="form-control" min="1" max="1440" value="60">
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h2>Global System Naming</h2>
+            <p class="card-desc">Personalize your workspace identifier and default assistant name.</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="set-system-name">Workspace System Name</label>
+                <input type="text" id="set-system-name" class="form-control" placeholder="Mickey" value="Mickey">
+              </div>
+              <div class="form-group">
+                <label for="set-assistant-name">Assistant Agent Name</label>
+                <input type="text" id="set-assistant-name" class="form-control" placeholder="Cookie" value="Cookie">
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card">
             <h2>Workspace Preferences</h2>
             <div class="form-group">
               <label for="set-clock-style">Dashboard Clock Style</label>
@@ -559,10 +661,143 @@
                 <option value="analog">Analog Clocks</option>
               </select>
             </div>
+            <div class="form-group" style="margin-top: 1rem;">
+              <label for="set-clock-format">Dashboard Clock Format</label>
+              <select id="set-clock-format" class="form-select">
+                <option value="12hr" selected>12-Hour Format (AM/PM)</option>
+                <option value="24hr">24-Hour Format</option>
+              </select>
+            </div>
           </div>
 
           <button type="submit" class="btn btn-primary btn-large">Save Workspace Settings</button>
         </form>
+      </section>
+
+      <!-- Panel: Ecosystem -->
+      <section id="panel-ecosystem" class="tab-panel">
+        <header class="panel-header-split">
+          <div>
+            <h1>Workspace Ecosystem</h1>
+            <p class="subtitle">A reflection of your digital habits and tech relationship.</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span id="ecosystem-growth-status" class="growth-status-badge">🟢 Growing</span>
+          </div>
+        </header>
+
+        <div class="ecosystem-layout" style="display:grid; grid-template-columns: 1fr 320px; gap:2rem;">
+          <!-- Visualizer Card -->
+          <div class="dashboard-card" style="min-height:480px; display:flex; flex-direction:column; padding:1.5rem;">
+            <div class="card-header" style="margin-bottom:0.75rem;">
+              <h2>Ecosystem Landscape</h2>
+              <span id="ecosystem-health-score-badge" class="badge badge-low" style="background-color:rgba(16, 185, 129, 0.15); color:var(--success); border:none;">Health: 100%</span>
+            </div>
+            <div style="flex:1; display:flex; justify-content:center; align-items:center; background-color:var(--bg-app); border: 1px solid var(--border); border-radius:var(--radius); overflow:hidden; position:relative;">
+              <canvas id="ecosystem-canvas" width="600" height="360" style="width:100%; height:100%; display:block;"></canvas>
+            </div>
+          </div>
+
+          <!-- Info & Progression Panel -->
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="dashboard-card" style="min-height:auto;">
+              <h2>Active Progression</h2>
+              <p class="subtitle" style="margin-bottom:0.75rem;">Stage advances based on system usage hours.</p>
+              <div class="ecosystem-stage-info" style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                <span id="ecosystem-stage-emoji" style="font-size:2rem;">🌱</span>
+                <div>
+                  <h3 id="ecosystem-stage-name">Seed</h3>
+                  <span id="ecosystem-active-hours" style="font-size:0.75rem; color:var(--text-muted);">0.0 hours active</span>
+                </div>
+              </div>
+              <div class="progress-bar-container" style="background-color:var(--border); height:8px; border-radius:4px; overflow:hidden;">
+                <div id="ecosystem-stage-progress" style="background-color:var(--primary); height:100%; width:0%;"></div>
+              </div>
+              <p id="ecosystem-next-stage-text" style="font-size:0.7rem; color:var(--text-muted); margin-top:0.4rem;">Next Stage: Sprout at 5 hours</p>
+            </div>
+
+            <div class="dashboard-card" style="min-height:auto; flex:1;">
+              <h2>Growth Parameters</h2>
+              <p class="subtitle" style="margin-bottom:0.75rem;">Landscape elements are seeded by behavior:</p>
+              <div style="display:flex; flex-direction:column; gap:0.6rem; font-size:0.8rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span>🌳 Focus Work (Task completions)</span>
+                  <strong id="eco-param-focus" style="color:var(--primary);">0 points</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span>🏫 Learning (Notes & Assistant chats)</span>
+                  <strong id="eco-param-learning" style="color:var(--success);">0 points</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span>🦌 Breaks (Hydration events)</span>
+                  <strong id="eco-param-breaks" style="color:var(--warning);">0 points</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span>🌫️ Pollution (Excessive idle time)</span>
+                  <strong id="eco-param-pollution" style="color:var(--danger);">0 points</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel: Analytics -->
+      <section id="panel-analytics" class="tab-panel">
+        <header class="panel-header-split">
+          <div>
+            <h1>Screen Time Analytics</h1>
+            <p class="subtitle">A detailed telemetry analysis of your system engagement.</p>
+          </div>
+          <div class="analytics-time-toggles" style="display:flex; background-color:var(--bg-sidebar); border:1px solid var(--border); border-radius:var(--radius); padding:2px;">
+            <button type="button" class="analytics-toggle-btn active" data-view="daily" style="background:none; border:none; border-radius:var(--radius); color:var(--text-muted); font-size:0.75rem; padding:0.4rem 0.8rem; cursor:pointer; font-weight:500; transition:all 0.15s;">Daily</button>
+            <button type="button" class="analytics-toggle-btn" data-view="weekly" style="background:none; border:none; border-radius:var(--radius); color:var(--text-muted); font-size:0.75rem; padding:0.4rem 0.8rem; cursor:pointer; font-weight:500; transition:all 0.15s;">Weekly</button>
+            <button type="button" class="analytics-toggle-btn" data-view="monthly" style="background:none; border:none; border-radius:var(--radius); color:var(--text-muted); font-size:0.75rem; padding:0.4rem 0.8rem; cursor:pointer; font-weight:500; transition:all 0.15s;">Monthly</button>
+            <button type="button" class="analytics-toggle-btn" data-view="lifetime" style="background:none; border:none; border-radius:var(--radius); color:var(--text-muted); font-size:0.75rem; padding:0.4rem 0.8rem; cursor:pointer; font-weight:500; transition:all 0.15s;">Lifetime</button>
+          </div>
+        </header>
+
+        <!-- Metric Grid -->
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:1.25rem; margin-bottom:1.5rem;">
+          <div class="dashboard-card" style="min-height:auto; padding:1.25rem;">
+            <span class="clock-label" style="font-size:0.75rem;">Active Time</span>
+            <span id="stat-active" style="font-size:1.5rem; font-weight:700; color:var(--primary); margin-top:0.25rem;">0h 0m</span>
+          </div>
+          <div class="dashboard-card" style="min-height:auto; padding:1.25rem;">
+            <span class="clock-label" style="font-size:0.75rem;">Idle / Paused Time</span>
+            <span id="stat-idle" style="font-size:1.5rem; font-weight:700; color:var(--danger); margin-top:0.25rem;">0h 0m</span>
+          </div>
+          <div class="dashboard-card" style="min-height:auto; padding:1.25rem;">
+            <span class="clock-label" style="font-size:0.75rem;">Sleep & Locked Time</span>
+            <span id="stat-sleep-lock" style="font-size:1.5rem; font-weight:700; color:var(--text-muted); margin-top:0.25rem;">0h 0m</span>
+          </div>
+          <div class="dashboard-card" style="min-height:auto; padding:1.25rem;">
+            <span class="clock-label" style="font-size:0.75rem;">Growth Efficiency</span>
+            <span id="stat-efficiency" style="font-size:1.5rem; font-weight:700; color:var(--success); margin-top:0.25rem;">100%</span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+          <!-- Chart: Active Growth -->
+          <div class="dashboard-card" style="min-height:300px;">
+            <div class="card-header">
+              <h2>Growth Durations Log</h2>
+            </div>
+            <div style="flex:1; position:relative; background-color:var(--bg-app); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; padding:1rem;">
+              <canvas id="chart-durations" style="width:100%; height:100%; display:block;"></canvas>
+            </div>
+          </div>
+          
+          <!-- Chart: Evolution Progress -->
+          <div class="dashboard-card" style="min-height:300px;">
+            <div class="card-header">
+              <h2>Ecosystem Health & Evolution</h2>
+            </div>
+            <div style="flex:1; position:relative; background-color:var(--bg-app); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; padding:1rem;">
+              <canvas id="chart-health" style="width:100%; height:100%; display:block;"></canvas>
+            </div>
+          </div>
+        </div>
       </section>
 
     </main>
@@ -627,6 +862,16 @@
         <div class="form-group">
           <label for="note-tags">Tags (comma-separated)</label>
           <input type="text" id="note-tags" class="form-control" placeholder="e.g. project, research, personal">
+        </div>
+        <div class="form-group">
+          <label>Sticky Note Color</label>
+          <div class="color-picker-grid">
+            <label class="color-opt" style="background-color:#fef08a;" title="Yellow"><input type="radio" name="note-color" value="#fef08a" checked></label>
+            <label class="color-opt" style="background-color:#bfdbfe;" title="Blue"><input type="radio" name="note-color" value="#bfdbfe"></label>
+            <label class="color-opt" style="background-color:#bbf7d0;" title="Green"><input type="radio" name="note-color" value="#bbf7d0"></label>
+            <label class="color-opt" style="background-color:#fbcfe8;" title="Pink"><input type="radio" name="note-color" value="#fbcfe8"></label>
+            <label class="color-opt" style="background-color:#ddd6fe;" title="Purple"><input type="radio" name="note-color" value="#ddd6fe"></label>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeModal('note-modal')">Cancel</button>
