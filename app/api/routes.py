@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+import httpx
 from pathlib import Path
 
 from app.database.connection import get_db, Base, engines, SessionLocal, get_db_for_mode
@@ -264,7 +265,8 @@ def get_settings(db: Session = Depends(get_db)):
         "figma_access_token", "mcp_figma_url", "clock_style", "water_reminder_enabled", 
         "water_reminder_interval", "system_name", "assistant_name", "clock_format",
         "mickey_face_template", "mickey_fingerprint_template", "mickey_username", 
-        "mickey_password", "mickey_bio_enrolled", "mickey_pass_enrolled"
+        "mickey_password", "mickey_bio_enrolled", "mickey_pass_enrolled",
+        "github_access_token", "mcp_github_url"
     ]
     res = {}
     for k in keys:
@@ -421,3 +423,89 @@ def get_ecosystem_status(db: Session = Depends(get_db)):
         },
         "history": history
     }
+
+# ── GITHUB MCP & REST API INTEGRATION ──
+@router.post("/api/github/validate")
+async def validate_github(req: schemas.SettingsUpdate, request: Request):
+    token = req.github_access_token
+    mcp_url = req.mcp_github_url
+    
+    if not token and not mcp_url:
+        mode = request.headers.get("x-workspace-mode", "work").lower()
+        from app.services.github import get_github_credentials
+        token, mcp_url = get_github_credentials(mode)
+        
+    if not token and not mcp_url:
+        return {"status": "disconnected", "message": "GitHub Access Token or MCP URL is not configured."}
+        
+    if mcp_url:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.post(mcp_url, json={"method": "tools/list", "params": {}})
+                if resp.status_code == 200:
+                    return {"status": "connected", "message": "Successfully connected to external GitHub MCP Server."}
+                else:
+                    return {"status": "error", "message": f"MCP server returned status {resp.status_code}: {resp.text}"}
+        except Exception as e:
+            return {"status": "error", "message": f"Could not reach external GitHub MCP server: {str(e)}"}
+            
+    if token:
+        headers = {
+            "Authorization": f"token {token}",
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "Mickey-Workspace-Agent"
+        }
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.get("https://api.github.com/user", headers=headers)
+                if resp.status_code == 200:
+                    user_data = resp.json()
+                    return {
+                        "status": "connected",
+                        "username": user_data.get("login"),
+                        "name": user_data.get("name"),
+                        "message": f"Successfully authenticated as {user_data.get('login')}."
+                    }
+                elif resp.status_code == 401:
+                    return {"status": "error", "message": "Invalid Personal Access Token."}
+                else:
+                    return {"status": "error", "message": f"GitHub API returned error {resp.status_code}."}
+        except Exception as e:
+            return {"status": "error", "message": f"GitHub connection failed: {str(e)}"}
+
+@router.post("/api/github-mcp")
+async def local_github_mcp(req: Dict[str, Any], request: Request):
+    method = req.get("method")
+    params = req.get("params", {})
+    tool_name = params.get("name")
+    arguments = params.get("arguments", {})
+    
+    mode = request.headers.get("x-workspace-mode", "work").lower()
+    from app.services.github import query_github_mcp
+    
+    if method == "tools/list":
+        return {
+            "tools": [
+                {"name": "list_repositories", "description": "List user repositories"},
+                {"name": "view_repository", "description": "Get detailed repository stats"},
+                {"name": "read_issues", "description": "List open issues in a repository"},
+                {"name": "create_issue", "description": "Create a new issue"},
+                {"name": "read_pull_requests", "description": "List open pull requests"},
+                {"name": "view_commits", "description": "List repository commits"},
+                {"name": "search_code", "description": "Search code within repositories"}
+            ]
+        }
+        
+    if method == "tools/call" and tool_name:
+        res = await query_github_mcp(
+            method=tool_name,
+            repo=arguments.get("repo"),
+            issue_number=arguments.get("issue_number"),
+            title=arguments.get("title"),
+            body=arguments.get("body"),
+            query=arguments.get("query"),
+            mode=mode
+        )
+        return res
+        
+    return {"error": "Invalid JSON-RPC or MCP request format."}

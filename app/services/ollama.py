@@ -62,13 +62,15 @@ Available Tools:
    Args: {"max_results": 5}
 10. `figma_mcp` - Query Figma design resources using MCP
     Args: {"query": "str"}
-11. `calculate` - Solve mathematical expressions.
+11. `github_mcp` - Query GitHub repositories, issues, pull requests, commits, and code search using MCP
+    Args: {"method": "list_repositories|view_repository|read_issues|create_issue|read_pull_requests|view_commits|search_code", "repo": "str (optional, e.g. owner/name)", "issue_number": "int (optional)", "title": "str (optional)", "body": "str (optional)", "query": "str (optional)"}
+12. `calculate` - Solve mathematical expressions.
     Args: {"expr": "str"}
-12. `convert_timezone` - Convert a timestamp across timezones.
+13. `convert_timezone` - Convert a timestamp across timezones.
     Args: {"dt": "YYYY-MM-DD HH:MM", "from_tz": "str", "to_tz": "str"}
-13. `weather_lookup` - View current weather for a city.
+14. `weather_lookup` - View current weather for a city.
     Args: {"city": "str"}
-14. `web_search` - Query web search snippets.
+15. `web_search` - Query web search snippets.
     Args: {"query": "str"}
 
 IMPORTANT: Always answer using clean markdown. Keep responses concise and focused on productivity.
@@ -163,6 +165,19 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], mode: str = "work")
             from app.services.mcp import query_figma_mcp
             res = await query_figma_mcp(args.get("query", ""), mode=mode)
             return {"figma_result": res}
+
+        elif tool_name == "github_mcp":
+            from app.services.github import query_github_mcp
+            res = await query_github_mcp(
+                method=args.get("method"),
+                repo=args.get("repo"),
+                issue_number=args.get("issue_number"),
+                title=args.get("title"),
+                body=args.get("body"),
+                query=args.get("query"),
+                mode=mode
+            )
+            return {"github_result": res}
 
         elif tool_name == "calculate":
             import re

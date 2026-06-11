@@ -126,6 +126,9 @@ class SettingsUpdate(BaseModel):
     mickey_password: Optional[str] = None
     mickey_bio_enrolled: Optional[str] = None
     mickey_pass_enrolled: Optional[str] = None
+    # GitHub Integration Keys
+    github_access_token: Optional[str] = None
+    mcp_github_url: Optional[str] = None
 
 class SyncEcosystemPayload(BaseModel):
     active_time: int

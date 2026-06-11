@@ -625,6 +625,28 @@
           </div>
 
           <div class="settings-card">
+            <h2>GitHub MCP API Linking</h2>
+            <p class="card-desc">Expose repositories, issues, code search, and commits directly to your AI Agent.</p>
+            <div class="form-group">
+              <label for="set-github-token">GitHub Personal Access Token (PAT)</label>
+              <input type="password" id="set-github-token" class="form-control" placeholder="ghp_••••••••••••••••••••••••••••">
+            </div>
+            <div class="form-group">
+              <label for="set-mcp-github-url">Custom GitHub MCP Server Endpoint</label>
+              <input type="url" id="set-mcp-github-url" class="form-control" placeholder="http://localhost:8000/api/github-mcp">
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-top:1rem; gap:1rem; flex-wrap:wrap;">
+              <div id="github-connection-status" style="font-size:0.8rem; font-weight:500; color:var(--text-muted);">
+                Status: <span id="github-status-val" style="color:var(--warning); font-weight:600;">Not Connected</span>
+              </div>
+              <div style="display:flex; gap:0.5rem;">
+                <button type="button" id="btn-github-validate" class="btn btn-secondary" style="font-size:0.75rem; padding:0.4rem 0.8rem;">Validate & Connect</button>
+                <button type="button" id="btn-github-disconnect" class="btn btn-secondary" style="font-size:0.75rem; padding:0.4rem 0.8rem; color:var(--danger); border-color:rgba(239, 68, 68, 0.2);">Disconnect</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card">
             <h2>Hydration Break Reminders</h2>
             <p class="card-desc">Keep healthy. Configure system popups and chimes to remind you to drink water.</p>
             <div class="form-checkbox">

@@ -699,6 +699,45 @@ function openEventModal(event = null) {
   openModal('event-modal');
 }
 
+async function updateGitHubStatusDisplay(token, mcpUrl) {
+  const valEl = el('github-status-val');
+  if (!valEl) return;
+  if (!token && !mcpUrl) {
+    valEl.textContent = "Disconnected";
+    valEl.style.color = "var(--text-muted)";
+    return;
+  }
+  
+  valEl.textContent = "Checking...";
+  valEl.style.color = "var(--warning)";
+  
+  try {
+    const res = await apiFetch('/api/github/validate', {
+      method: 'POST',
+      body: {
+        github_access_token: token || null,
+        mcp_github_url: mcpUrl || null
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === 'connected') {
+        valEl.textContent = data.username ? `Connected as ${data.username}` : "Connected";
+        valEl.style.color = "var(--success)";
+      } else {
+        valEl.textContent = "Connection Error";
+        valEl.style.color = "var(--danger)";
+      }
+    } else {
+      valEl.textContent = "Error";
+      valEl.style.color = "var(--danger)";
+    }
+  } catch (e) {
+    valEl.textContent = "Network Error";
+    valEl.style.color = "var(--danger)";
+  }
+}
+
 // Global clock style variable
 let currentClockStyle = 'digital';
 let currentClockFormat = '12hr';
@@ -713,6 +752,12 @@ async function fetchSettings() {
     el('set-gmail-password').value = data.gmail_app_password || '';
     el('set-figma-token').value = data.figma_access_token || '';
     el('set-mcp-figma-url').value = data.mcp_figma_url || '';
+    
+    // GitHub inputs
+    el('set-github-token').value = data.github_access_token || '';
+    el('set-mcp-github-url').value = data.mcp_github_url || '';
+    updateGitHubStatusDisplay(data.github_access_token, data.mcp_github_url);
+
     currentClockStyle = data.clock_style || 'digital';
     el('set-clock-style').value = currentClockStyle;
     currentClockFormat = data.clock_format || '12hr';
