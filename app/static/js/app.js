@@ -2252,10 +2252,6 @@ function triggerHydrationBreak() {
     dismissToast();
   });
   
-  setTimeout(() => {
-    if (toast.parentElement) dismissToast();
-  }, 10000);
-  
   container.appendChild(toast);
 }
 
