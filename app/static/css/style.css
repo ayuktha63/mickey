@@ -137,6 +137,9 @@ body {
   flex-direction: column;
   gap: 0.25rem;
   flex: 1;
+  min-height: 0; /* allow flex children to shrink and enable internal scrolling */
+  overflow-y: auto; /* enable scrolling when nav exceeds viewport */
+  padding-right: 6px; /* avoid scrollbar overlap */
 }
 
 .nav-item {
@@ -422,6 +425,11 @@ body {
   flex: 1;
   overflow-y: auto;
   max-height: 220px;
+}
+
+/* Make GitHub commits list taller to reduce scrolling when viewing a repo */
+#github-commits-container.widget-list {
+  max-height: 420px;
 }
 
 .loading-state, .placeholder-text {
@@ -2075,4 +2083,115 @@ html.dark .color-opt:has(input:checked) {
   flex-direction: column;
   gap: 1.5rem;
 }
+
+
+
+/* --- GitHub Split-pane Layout --- */
+.github-layout {
+  min-height: 0;
+}
+.github-sub-tab {
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.github-sub-tab:hover {
+  color: var(--primary) !important;
+}
+.github-subpanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.github-repo-item {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--bg-card);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.8rem;
+  text-align: left;
+}
+.github-repo-item:hover, .github-repo-item.active {
+  border-color: var(--primary);
+  background-color: var(--bg-sidebar);
+}
+.github-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  text-align: left;
+}
+.github-list-item:last-child {
+  border-bottom: none;
+}
+.github-list-item-title {
+  font-weight: 600;
+  color: var(--text-main);
+}
+.github-list-item-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* --- Jira Workspace Panel --- */
+#panel-jira.tab-panel.active {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+}
+#jira-disconnected-view {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* --- MCP Settings Cards --- */
+#panel-mcp.tab-panel.active {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+}
+.mcp-card {
+  border: 1px solid var(--border);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.mcp-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+.mcp-card-icon svg {
+  transition: transform 0.2s ease;
+}
+.mcp-card:hover .mcp-card-icon svg {
+  transform: scale(1.05);
+}
+
+/* --- Logs Console view --- */
+#panel-logs.tab-panel.active {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+}
+.logs-content-container {
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Active MCP sidebar tag item --- */
+.sidebar-mcp-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-main);
+  font-weight: 500;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.06);
+}
+
 

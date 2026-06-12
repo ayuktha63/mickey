@@ -9,14 +9,34 @@ logger = logging.getLogger(__name__)
 def get_github_credentials(mode: str = "work") -> tuple[str, str]:
     """
     Retrieve GitHub Personal Access Token (PAT) and custom MCP URL for the selected mode (Work vs Personal).
+    Supports falling back to environment variables if settings rows do not exist.
     """
+    import os
     db = get_db_for_mode(mode)
+    token_val = None
+    mcp_url_val = None
     try:
-        token = db.query(Setting).filter(Setting.key == "github_access_token").first()
-        mcp_url = db.query(Setting).filter(Setting.key == "mcp_github_url").first()
-        return (token.value if token else "", mcp_url.value if mcp_url else "")
+        token_row = db.query(Setting).filter(Setting.key == "github_access_token").first()
+        mcp_url_row = db.query(Setting).filter(Setting.key == "mcp_github_url").first()
+        if token_row is not None:
+            token_val = token_row.value
+        if mcp_url_row is not None:
+            mcp_url_val = mcp_url_row.value
     finally:
         db.close()
+
+    # Fallback to environment variables if not present in database
+    # An empty string "" row in the DB indicates an explicit disconnection, which bypasses fallback
+    if token_val is None:
+        env_key = f"GITHUB_TOKEN_{mode.upper()}"
+        token_val = os.environ.get(env_key) or os.environ.get("GITHUB_TOKEN") or os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN") or ""
+        
+    if mcp_url_val is None:
+        env_mcp_key = f"MCP_GITHUB_URL_{mode.upper()}"
+        mcp_url_val = os.environ.get(env_mcp_key) or os.environ.get("MCP_GITHUB_URL") or ""
+        
+    return token_val, mcp_url_val
+
 
 async def query_github_mcp(
     method: str,

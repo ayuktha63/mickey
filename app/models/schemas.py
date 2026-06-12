@@ -139,3 +139,21 @@ class SyncEcosystemPayload(BaseModel):
     learning_delta: int
     break_delta: int
 
+class JiraConnectRequest(BaseModel):
+    url: str
+    email: str
+    token: str
+
+class JiraIssueCreate(BaseModel):
+    project_key: str
+    summary: str
+    description: Optional[str] = ""
+    issue_type: Optional[str] = "Task"
+
+class JiraCommentCreate(BaseModel):
+    comment: str
+
+class JiraTransitionRequest(BaseModel):
+    transition_id: str
+
+

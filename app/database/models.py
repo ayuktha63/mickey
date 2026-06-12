@@ -85,3 +85,53 @@ class EcosystemLog(Base):
     learning_score = Column(Integer, default=0)    # learning points (e.g. note created, chat sent)
     break_score = Column(Integer, default=0)       # break points (e.g. water breaks done)
 
+class RecentFile(Base):
+    __tablename__ = "recent_files"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    path = Column(String, nullable=False, index=True)
+    size = Column(Integer, nullable=False)
+    last_opened = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+class FavoriteFolder(Base):
+    __tablename__ = "favorite_folders"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    path = Column(String, nullable=False, unique=True)
+    added_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class UserActionLog(Base):
+    __tablename__ = "user_action_logs"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    action_type = Column(String, nullable=False)
+    details = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+
+class JiraConfig(Base):
+    __tablename__ = "jira_configs"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    mode = Column(String, nullable=False)  # "work" or "personal"
+    url = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+    encrypted_token = Column(String, nullable=False)
+    connection_status = Column(String, default="disconnected")
+
+class BrowserConfig(Base):
+    __tablename__ = "browser_configs"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    mode = Column(String, nullable=False)
+    default_browser = Column(String, default="chrome")
+    automation_enabled = Column(Boolean, default=False)
+    monitoring_enabled = Column(Boolean, default=False)
+    form_filling_enabled = Column(Boolean, default=False)
+    page_summarization_enabled = Column(Boolean, default=False)
+    download_monitoring_enabled = Column(Boolean, default=False)
+
+class MCPLog(Base):
+    __tablename__ = "mcp_logs"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    mcp_name = Column(String, nullable=False)
+    action = Column(String, nullable=False)
+    details = Column(Text)
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+

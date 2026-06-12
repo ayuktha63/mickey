@@ -5,9 +5,14 @@ from fastapi.staticfiles import StaticFiles
 from app.api.routes import router
 
 # Configure logging
+BASE_DIR = Path(__file__).resolve().parent
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(BASE_DIR / "app.log", mode="a")
+    ]
 )
 logger = logging.getLogger("workspace")
 
@@ -18,7 +23,6 @@ app = FastAPI(
 )
 
 # Resolve paths dynamically
-BASE_DIR = Path(__file__).resolve().parent
 static_dir = BASE_DIR / "app" / "static"
 
 # Ensure static directory exists

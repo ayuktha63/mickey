@@ -87,10 +87,24 @@ async function initApp() {
   el('event-form').addEventListener('submit', handleEventSubmit);
   el('settings-form').addEventListener('submit', handleSettingsSubmit);
   
+  // GitHub integration bindings
+  el('btn-github-validate').addEventListener('click', validateAndConnectGitHub);
+  el('btn-github-disconnect').addEventListener('click', disconnectGitHub);
+  if (el('refresh-dash-github-btn')) {
+    el('refresh-dash-github-btn').addEventListener('click', () => { Sound.playClick(); loadGitHubDashboardWidget(); });
+  }
+
+
+  
+  // Setup GitHub interactive bindings
+  setupGitHubPanelBindings();
+
+  
   // Dashboard quick links refresh
   el('refresh-gmail-btn').addEventListener('click', () => { Sound.playClick(); loadGmailFeed(); });
   el('trigger-figma-btn').addEventListener('click', () => { Sound.playClick(); triggerFigmaSandbox(); });
   el('refresh-weather-btn').addEventListener('click', () => { Sound.playClick(); loadWeatherForecast(); });
+
   
   // Search listener for notes
   el('notes-search-input').addEventListener('input', () => {
@@ -105,6 +119,12 @@ async function initApp() {
   el('sidebar-logout-btn').addEventListener('click', () => {
     Biometrics.logout();
   });
+
+  // Initialize Jira, MCP, and Logs bindings and sidebar indicators
+  setupJiraPanelBindings();
+  setupMcpPanelBindings();
+  setupLogsPanelBindings();
+  updateSidebarActiveMcps();
 
   // Notifications Bell Click
   el('notification-bell-btn').addEventListener('click', (e) => {
@@ -364,6 +384,10 @@ function setupModeToggle() {
     loadNotes();
     renderCalendar();
     fetchSettings();
+    updateSidebarActiveMcps();
+    if (currentTab === 'jira') loadJiraPanel();
+    if (currentTab === 'mcp') loadMcpPanel();
+    if (currentTab === 'logs') loadLogsPanel();
   };
 
   workBtn.addEventListener('click', () => switchMode('work'));
@@ -522,7 +546,7 @@ function setupDashboardWidgets() {
   });
 
   // Load saved toggles configuration
-  const widgets = ["clocks", "tasks", "events", "gmail", "figma", "notes", "weather", "ecosystem"];
+  const widgets = ["clocks", "tasks", "events", "gmail", "github", "figma", "notes", "weather", "ecosystem"];
   widgets.forEach(w => {
     const toggleEl = el(`toggle-widget-${w}`);
     if (toggleEl) {
@@ -534,7 +558,7 @@ function setupDashboardWidgets() {
 }
 
 function saveDashboardWidgetsConfig() {
-  const widgets = ["clocks", "tasks", "events", "gmail", "figma", "notes", "weather", "ecosystem"];
+  const widgets = ["clocks", "tasks", "events", "gmail", "github", "figma", "notes", "weather", "ecosystem"];
   widgets.forEach(w => {
     const toggleEl = el(`toggle-widget-${w}`);
     if (toggleEl) {
@@ -546,7 +570,7 @@ function saveDashboardWidgetsConfig() {
 }
 
 function renderDashboardWidgetsVisibility() {
-  const widgets = ["clocks", "tasks", "events", "gmail", "figma", "notes", "weather", "ecosystem"];
+  const widgets = ["clocks", "tasks", "events", "gmail", "github", "figma", "notes", "weather", "ecosystem"];
   widgets.forEach(w => {
     const visible = localStorage.getItem(`mickey_widget_${w}`) !== 'false';
     const widgetCard = el(`widget-${w}`);
@@ -618,6 +642,10 @@ function switchTab(tabId) {
   if (tabId === 'notes') loadNotes();
   if (tabId === 'calendar') renderCalendar();
   if (tabId === 'gmail') loadGmailPanel();
+  if (tabId === 'github') loadGitHubPanel();
+  if (tabId === 'jira') loadJiraPanel();
+  if (tabId === 'mcp') loadMcpPanel();
+  if (tabId === 'logs') loadLogsPanel();
   if (tabId === 'ecosystem') loadEcosystemPage();
   if (tabId === 'analytics') loadAnalyticsPage();
 }
@@ -757,6 +785,32 @@ async function fetchSettings() {
     el('set-github-token').value = data.github_access_token || '';
     el('set-mcp-github-url').value = data.mcp_github_url || '';
     updateGitHubStatusDisplay(data.github_access_token, data.mcp_github_url);
+
+    // If an external MCP server is configured for an integration, hide the corresponding Settings card
+    try {
+      if (data.mcp_github_url) {
+        const githubCard = el('set-github-token')?.closest('.settings-card');
+        if (githubCard) githubCard.style.display = 'none';
+      }
+    } catch(e){}
+    try {
+      if (data.mcp_figma_url) {
+        const figmaCard = el('set-figma-token')?.closest('.settings-card');
+        if (figmaCard) figmaCard.style.display = 'none';
+      }
+    } catch(e){}
+
+    // If Jira is connected via MCP, hide Jira settings (double-check via /api/jira/config)
+    try {
+      const jiraCfgRes = await apiFetch('/api/jira/config');
+      if (jiraCfgRes.ok) {
+        const jiraCfg = await jiraCfgRes.json();
+        if (jiraCfg.status === 'connected') {
+          const jiraCard = el('set-jira-url')?.closest('.settings-card');
+          if (jiraCard) jiraCard.style.display = 'none';
+        }
+      }
+    } catch(e) {}
 
     currentClockStyle = data.clock_style || 'digital';
     el('set-clock-style').value = currentClockStyle;
@@ -901,6 +955,9 @@ async function loadDashboardData() {
     
     // Update Ecosystem Dashboard Widget
     loadDashboardEcosystemWidget();
+    
+    // Update GitHub Dashboard Widget
+    loadGitHubDashboardWidget();
   } catch (e) {
     console.error("Error fetching dashboard updates:", e);
   }
@@ -1750,13 +1807,10 @@ async function handleEventSubmit(e) {
   }
 }
 
-// ── SETTINGS SUBMIT ──
 async function handleSettingsSubmit(e) {
   e.preventDefault();
   const ollama_url = el('set-ollama-url').value;
   const selected_model = el('set-selected-model').value;
-  const gmail_address = el('set-gmail-address').value;
-  const gmail_app_password = el('set-gmail-password').value;
   const figma_access_token = el('set-figma-token').value;
   const mcp_figma_url = el('set-mcp-figma-url').value;
   const clock_style = el('set-clock-style').value;
@@ -1767,11 +1821,12 @@ async function handleSettingsSubmit(e) {
   const system_name = el('set-system-name').value.trim() || 'Mickey';
   const assistant_name = el('set-assistant-name').value.trim() || 'Cookie';
 
+  const github_access_token = el('set-github-token').value;
+  const mcp_github_url = el('set-mcp-github-url').value;
+
   const payload = {
     ollama_url: ollama_url || null,
     selected_model: selected_model || null,
-    gmail_address: gmail_address || null,
-    gmail_app_password: gmail_app_password || null,
     figma_access_token: figma_access_token || null,
     mcp_figma_url: mcp_figma_url || null,
     clock_style: clock_style || 'digital',
@@ -1779,7 +1834,9 @@ async function handleSettingsSubmit(e) {
     water_reminder_enabled,
     water_reminder_interval,
     system_name,
-    assistant_name
+    assistant_name,
+    github_access_token: github_access_token || null,
+    mcp_github_url: mcp_github_url || null
   };
   
   try {
@@ -1797,6 +1854,7 @@ async function handleSettingsSubmit(e) {
       currentSystemName = system_name;
       currentAssistantName = assistant_name;
       applyRenamingUI();
+      updateGitHubStatusDisplay(github_access_token, mcp_github_url);
       await fetchModels();
     }
   } catch (e) {
@@ -2242,6 +2300,10 @@ function setupWaterReminder(enabled, intervalMinutes) {
 }
 
 function triggerHydrationBreak() {
+  if (isFocusMode) {
+    console.log("Hydration alarm muted/suppressed during Teams Focus Mode");
+    return;
+  }
   Sound.playSuccess();
   
   let container = document.getElementById('toast-container');
@@ -2884,6 +2946,7 @@ async function loadAnalyticsPage(viewType = 'daily') {
         const focus = chunk.reduce((sum, item) => sum + item.focus_score, 0);
         const learning = chunk.reduce((sum, item) => sum + item.learning_score, 0);
         const breakSc = chunk.reduce((sum, item) => sum + item.break_score, 0);
+        const meetings = chunk.reduce((sum, item) => sum + (item.meeting_duration || 0), 0);
         
         const dateLabel = `Wk -${Math.floor(i/7) + 1}`;
         weeks.push({
@@ -2894,7 +2957,8 @@ async function loadAnalyticsPage(viewType = 'daily') {
           locked_time: locked,
           focus_score: focus,
           learning_score: learning,
-          break_score: breakSc
+          break_score: breakSc,
+          meeting_duration: meetings
         });
       }
       aggregated = weeks.reverse();
@@ -2911,7 +2975,8 @@ async function loadAnalyticsPage(viewType = 'daily') {
             locked_time: 0,
             focus_score: 0,
             learning_score: 0,
-            break_score: 0
+            break_score: 0,
+            meeting_duration: 0
           };
         }
         monthsMap[monthKey].active_time += item.active_time;
@@ -2921,6 +2986,7 @@ async function loadAnalyticsPage(viewType = 'daily') {
         monthsMap[monthKey].focus_score += item.focus_score;
         monthsMap[monthKey].learning_score += item.learning_score;
         monthsMap[monthKey].break_score += item.break_score;
+        monthsMap[monthKey].meeting_duration += (item.meeting_duration || 0);
       });
       aggregated = Object.values(monthsMap).sort((a, b) => a.date.localeCompare(b.date)).slice(-12);
     } else {
@@ -2942,6 +3008,10 @@ async function loadAnalyticsPage(viewType = 'daily') {
     if (el('stat-idle')) el('stat-idle').textContent = formatDuration(totalIdle);
     if (el('stat-sleep-lock')) el('stat-sleep-lock').textContent = formatDuration(totalSleep + totalLocked);
     if (el('stat-efficiency')) el('stat-efficiency').textContent = `${efficiency}%`;
+    
+    const totalMeetings = aggregated.reduce((sum, item) => sum + (item.meeting_duration || 0), 0);
+    if (el('stat-meetings')) el('stat-meetings').textContent = formatDuration(totalMeetings);
+
     
     const durationsCanvas = el('chart-durations');
     const healthCanvas = el('chart-health');
@@ -3224,14 +3294,16 @@ function setupSettingsToggles() {
 
   const updateSettingsCards = (sec) => {
     const cards = document.querySelectorAll('#settings-form .settings-card');
-    cards.forEach((card, idx) => {
-      if (sec === 'integrations') {
-        card.style.display = idx < 3 ? 'block' : 'none';
+    cards.forEach((card) => {
+      const category = card.getAttribute('data-category') || 'system';
+      if (category === sec) {
+        card.style.display = 'block';
       } else {
-        card.style.display = idx >= 3 ? 'block' : 'none';
+        card.style.display = 'none';
       }
     });
   };
+
 
   toggleButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -3325,4 +3397,1624 @@ function calculateNextDueDate(dueDateStr, repeat) {
   }
   return date.toISOString();
 }
+
+// ── FOCUS MODE STUB (Teams removed) ──
+let isFocusMode = false;
+
+// GitHub validate & disconnect
+async function validateAndConnectGitHub() {
+  const token = el('set-github-token').value;
+  const mcpUrl = el('set-mcp-github-url').value;
+  const valEl = el('github-status-val');
+  
+  if (!valEl) return;
+  valEl.textContent = "Connecting...";
+  valEl.style.color = "var(--warning)";
+  Sound.playClick();
+  
+  try {
+    const res = await apiFetch('/api/github/validate', {
+      method: 'POST',
+      body: {
+        github_access_token: token || null,
+        mcp_github_url: mcpUrl || null
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === 'connected') {
+        valEl.textContent = data.username ? `Connected as ${data.username}` : (data.message || "Connected");
+        valEl.style.color = "var(--success)";
+        
+        // Save settings to database
+        const payload = {
+          ollama_url: el('set-ollama-url').value || null,
+          selected_model: el('set-selected-model').value || null,
+          gmail_address: el('set-gmail-address').value || null,
+          gmail_app_password: el('set-gmail-password').value || null,
+          figma_access_token: el('set-figma-token').value || null,
+          mcp_figma_url: el('set-mcp-figma-url').value || null,
+          clock_style: el('set-clock-style').value || 'digital',
+          clock_format: el('set-clock-format').value || '12hr',
+          water_reminder_enabled: el('set-water-enabled').checked,
+          water_reminder_interval: parseInt(el('set-water-interval').value) || 60,
+          system_name: el('set-system-name').value.trim() || 'Mickey',
+          assistant_name: el('set-assistant-name').value.trim() || 'Cookie',
+          github_access_token: token || null,
+          mcp_github_url: mcpUrl || null
+        };
+        
+        const saveRes = await apiFetch('/api/settings', {
+          method: 'POST',
+          body: payload
+        });
+        if (saveRes.ok) {
+          alert("GitHub connected and configuration saved successfully!");
+          Sound.playSuccess();
+          loadGitHubDashboardWidget();
+        }
+      } else {
+        valEl.textContent = data.message || "Connection Error";
+        valEl.style.color = "var(--danger)";
+        alert("GitHub connection failed: " + (data.message || "Unknown error"));
+      }
+    }
+  } catch (e) {
+    valEl.textContent = "Error";
+    valEl.style.color = "var(--danger)";
+    console.error(e);
+  }
+}
+
+async function disconnectGitHub() {
+  const valEl = el('github-status-val');
+  if (!valEl) return;
+  Sound.playClick();
+  
+  el('set-github-token').value = '';
+  el('set-mcp-github-url').value = '';
+  
+  const payload = {
+    ollama_url: el('set-ollama-url').value || null,
+    selected_model: el('set-selected-model').value || null,
+    gmail_address: el('set-gmail-address').value || null,
+    gmail_app_password: el('set-gmail-password').value || null,
+    figma_access_token: el('set-figma-token').value || null,
+    mcp_figma_url: el('set-mcp-figma-url').value || null,
+    clock_style: el('set-clock-style').value || 'digital',
+    clock_format: el('set-clock-format').value || '12hr',
+    water_reminder_enabled: el('set-water-enabled').checked,
+    water_reminder_interval: parseInt(el('set-water-interval').value) || 60,
+    system_name: el('set-system-name').value.trim() || 'Mickey',
+    assistant_name: el('set-assistant-name').value.trim() || 'Cookie',
+    github_access_token: '',
+    mcp_github_url: ''
+  };
+  
+  try {
+    const res = await apiFetch('/api/settings', {
+      method: 'POST',
+      body: payload
+    });
+    if (res.ok) {
+      valEl.textContent = "Disconnected";
+      valEl.style.color = "var(--text-muted)";
+      alert("GitHub integration disconnected successfully.");
+      Sound.playSuccess();
+      loadGitHubDashboardWidget();
+    }
+  } catch (e) {
+    console.error("Disconnect GitHub failed:", e);
+  }
+}
+
+// GitHub workspace panel view
+let activeGitHubRepo = null;
+let currentGitHubSubtab = 'issues';
+
+async function loadGitHubPanel() {
+  const reposListEl = el('github-repos-list');
+  const repoSelector = el('github-repo-selector');
+  if (!reposListEl) return;
+  
+  reposListEl.innerHTML = '<div class="loading-state">Syncing repositories...</div>';
+  if (repoSelector) {
+    repoSelector.innerHTML = '<option value="">Select Repository...</option>';
+  }
+  
+  try {
+    const res = await apiFetch('/api/github-mcp', {
+      method: 'POST',
+      body: {
+        method: 'tools/call',
+        params: {
+          name: 'list_repositories',
+          arguments: {}
+        }
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const repos = data.github_result ? (data.github_result.repositories || []) : [];
+      
+      reposListEl.innerHTML = '';
+      if (repos.length === 0) {
+        reposListEl.innerHTML = '<div class="placeholder-text">No repositories found or token lacks scopes.</div>';
+        return;
+      }
+      
+      repos.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'github-repo-item';
+        if (activeGitHubRepo === r.name) item.classList.add('active');
+        item.innerHTML = `
+          <div style="font-weight:600; color:var(--text-main); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${r.name}</div>
+          <div style="font-size:0.7rem; color:var(--text-muted); text-overflow:ellipsis; overflow:hidden; white-space:nowrap; margin-top:0.15rem;">${r.description || 'No description.'}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; font-size:0.65rem; color:var(--text-muted);">
+            <span>⭐ ${r.stars || 0}</span>
+            <span>${r.private ? '🔒 Private' : '🔓 Public'}</span>
+          </div>
+        `;
+        item.onclick = () => {
+          Sound.playClick();
+          selectGitHubRepo(r.name);
+        };
+        reposListEl.appendChild(item);
+        
+        if (repoSelector) {
+          const opt = document.createElement('option');
+          opt.value = r.name;
+          opt.textContent = r.name;
+          opt.selected = activeGitHubRepo === r.name;
+          repoSelector.appendChild(opt);
+        }
+      });
+      
+      if (!activeGitHubRepo && repos.length > 0) {
+        selectGitHubRepo(repos[0].name);
+      }
+    } else {
+      reposListEl.innerHTML = '<div class="placeholder-text" style="color:var(--danger);">Failed to retrieve repositories. Configure Personal Access Token in settings.</div>';
+    }
+  } catch (e) {
+    reposListEl.innerHTML = '<div class="placeholder-text" style="color:var(--danger);">Error connecting to GitHub MCP.</div>';
+    console.error(e);
+  }
+}
+
+function selectGitHubRepo(repoName) {
+  activeGitHubRepo = repoName;
+  
+  document.querySelectorAll('.github-repo-item').forEach(item => {
+    const name = item.querySelector('div').textContent;
+    if (name === repoName) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+  
+  const selector = el('github-repo-selector');
+  if (selector) selector.value = repoName;
+  
+  el('github-select-repo-placeholder').style.display = 'none';
+  el('github-repo-details-content').style.display = 'flex';
+  
+  el('github-code-search-input').value = '';
+  el('github-subpanel-search').style.display = 'none';
+  
+  loadGitHubRepoDetails(repoName);
+  loadGitHubSubtabContent();
+}
+
+async function loadGitHubRepoDetails(repoName) {
+  el('github-active-repo-name').textContent = repoName;
+  
+  try {
+    const res = await apiFetch('/api/github-mcp', {
+      method: 'POST',
+      body: {
+        method: 'tools/call',
+        params: {
+          name: 'view_repository',
+          arguments: { repo: repoName }
+        }
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const r = data.github_result || {};
+      
+      el('github-active-repo-desc').textContent = r.description || 'No description provided.';
+      el('github-active-repo-link').href = r.html_url || '#';
+      el('github-stat-branch').textContent = r.default_branch || 'main';
+      el('github-stat-stars').textContent = r.stars || '0';
+      el('github-stat-issues').textContent = r.open_issues_count || '0';
+      el('github-stat-forks').textContent = r.forks || '0';
+    }
+  } catch (e) {
+    console.error("Failed to load repo stats details:", e);
+  }
+}
+
+function loadGitHubSubtabContent() {
+  document.querySelectorAll('.github-subpanel').forEach(p => p.style.display = 'none');
+  
+  if (currentGitHubSubtab === 'issues') {
+    el('github-subpanel-issues').style.display = 'flex';
+    loadGitHubRepoIssues(activeGitHubRepo);
+  } else if (currentGitHubSubtab === 'pulls') {
+    el('github-subpanel-pulls').style.display = 'flex';
+    loadGitHubRepoPulls(activeGitHubRepo);
+  } else if (currentGitHubSubtab === 'commits') {
+    el('github-subpanel-commits').style.display = 'flex';
+    loadGitHubRepoCommits(activeGitHubRepo);
+  }
+}
+
+async function loadGitHubRepoIssues(repoName) {
+  const container = el('github-issues-container');
+  if (!container) return;
+  container.innerHTML = '<div class="loading-state">Syncing issues...</div>';
+  
+  try {
+    const res = await apiFetch('/api/github-mcp', {
+      method: 'POST',
+      body: {
+        method: 'tools/call',
+        params: {
+          name: 'read_issues',
+          arguments: { repo: repoName }
+        }
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const issues = data.github_result ? (data.github_result.issues || []) : [];
+      container.innerHTML = '';
+      if (issues.length === 0) {
+        container.innerHTML = '<div class="placeholder-text">No open issues found in this repository.</div>';
+        return;
+      }
+      issues.forEach(i => {
+        const item = document.createElement('div');
+        item.className = 'github-list-item';
+        item.innerHTML = `
+          <div>
+            <div class="github-list-item-title">#${i.number} ${i.title}</div>
+            <div class="github-list-item-meta">Opened by ${i.user} &bull; ${new Date(i.created_at).toLocaleDateString()}</div>
+          </div>
+          <a href="${i.html_url}" target="_blank" class="action-link">Open</a>
+        `;
+        container.appendChild(item);
+      });
+    }
+  } catch (e) {
+    container.innerHTML = '<div class="placeholder-text" style="color:var(--danger);">Error fetching issues.</div>';
+  }
+}
+
+async function loadGitHubRepoPulls(repoName) {
+  const container = el('github-pulls-container');
+  if (!container) return;
+  container.innerHTML = '<div class="loading-state">Syncing pull requests...</div>';
+  
+  try {
+    const res = await apiFetch('/api/github-mcp', {
+      method: 'POST',
+      body: {
+        method: 'tools/call',
+        params: {
+          name: 'read_pull_requests',
+          arguments: { repo: repoName }
+        }
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const pulls = data.github_result ? (data.github_result.pull_requests || []) : [];
+      container.innerHTML = '';
+      if (pulls.length === 0) {
+        container.innerHTML = '<div class="placeholder-text">No open pull requests found.</div>';
+        return;
+      }
+      pulls.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'github-list-item';
+        item.innerHTML = `
+          <div>
+            <div class="github-list-item-title">#${p.number} ${p.title}</div>
+            <div class="github-list-item-meta">Opened by ${p.user} &bull; merge ${p.branch_from} into ${p.branch_to}</div>
+          </div>
+          <a href="${p.html_url}" target="_blank" class="action-link">Open</a>
+        `;
+        container.appendChild(item);
+      });
+    }
+  } catch (e) {
+    container.innerHTML = '<div class="placeholder-text" style="color:var(--danger);">Error fetching pull requests.</div>';
+  }
+}
+
+async function loadGitHubRepoCommits(repoName) {
+  const container = el('github-commits-container');
+  if (!container) return;
+  container.innerHTML = '<div class="loading-state">Syncing commits...</div>';
+  
+  try {
+    const res = await apiFetch('/api/github-mcp', {
+      method: 'POST',
+      body: {
+        method: 'tools/call',
+        params: {
+          name: 'view_commits',
+          arguments: { repo: repoName }
+        }
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const commits = data.github_result ? (data.github_result.commits || []) : [];
+      container.innerHTML = '';
+      if (commits.length === 0) {
+        container.innerHTML = '<div class="placeholder-text">No commits found in default branch.</div>';
+        return;
+      }
+      commits.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'github-list-item';
+        item.innerHTML = `
+          <div>
+            <div class="github-list-item-title">${c.message}</div>
+            <div class="github-list-item-meta">${c.author} committed on ${new Date(c.date).toLocaleDateString()} &bull; sha: <code>${c.sha}</code></div>
+          </div>
+          <a href="${c.html_url}" target="_blank" class="action-link">View</a>
+        `;
+        container.appendChild(item);
+      });
+    }
+  } catch (e) {
+    container.innerHTML = '<div class="placeholder-text" style="color:var(--danger);">Error fetching commits.</div>';
+  }
+}
+
+async function searchGitHubCode(repoName, query) {
+  const container = el('github-search-container');
+  if (!container) return;
+  
+  document.querySelectorAll('.github-subpanel').forEach(p => p.style.display = 'none');
+  el('github-subpanel-search').style.display = 'flex';
+  
+  container.innerHTML = '<div class="loading-state">Searching code files...</div>';
+  
+  try {
+    const res = await apiFetch('/api/github-mcp', {
+      method: 'POST',
+      body: {
+        method: 'tools/call',
+        params: {
+          name: 'search_code',
+          arguments: {
+            repo: repoName,
+            query: query
+          }
+        }
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const results = data.github_result ? (data.github_result.items || []) : [];
+      container.innerHTML = '';
+      if (results.length === 0) {
+        container.innerHTML = `<div class="placeholder-text">No matching code files found for "${query}".</div>`;
+        return;
+      }
+      results.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'github-list-item';
+        div.innerHTML = `
+          <div>
+            <div class="github-list-item-title">${item.name}</div>
+            <div class="github-list-item-meta">${item.path}</div>
+          </div>
+          <a href="${item.html_url}" target="_blank" class="action-link">View Code</a>
+        `;
+        container.appendChild(div);
+      });
+    }
+  } catch (e) {
+    container.innerHTML = '<div class="placeholder-text" style="color:var(--danger);">Error searching code.</div>';
+  }
+}
+
+async function createGitHubIssue(repoName, title, body) {
+  if (!title) {
+    alert("Please specify a title for the issue.");
+    return;
+  }
+  
+  try {
+    const res = await apiFetch('/api/github-mcp', {
+      method: 'POST',
+      body: {
+        method: 'tools/call',
+        params: {
+          name: 'create_issue',
+          arguments: {
+            repo: repoName,
+            title: title,
+            body: body
+          }
+        }
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const result = data.github_result || {};
+      if (result.status === 'success') {
+        alert(`Issue #${result.number} created successfully!`);
+        Sound.playSuccess();
+        
+        el('github-issue-title').value = '';
+        el('github-issue-body').value = '';
+        el('github-new-issue-form-container').style.display = 'none';
+        
+        loadGitHubRepoIssues(repoName);
+      } else {
+        alert("Failed to create issue: " + (result.error || "Unknown error"));
+      }
+    }
+  } catch (e) {
+    alert("Error creating issue: " + e.message);
+  }
+}
+
+// GitHub Dashboard Widget
+async function loadGitHubDashboardWidget() {
+  const container = el('dash-github-container');
+  const badge = el('dash-github-status');
+  if (!container) return;
+  
+  try {
+    const res = await apiFetch('/api/github-mcp', {
+      method: 'POST',
+      body: {
+        method: 'tools/call',
+        params: {
+          name: 'list_repositories',
+          arguments: {}
+        }
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      
+      if (data.error || (data.github_result && data.github_result.error)) {
+        if (badge) {
+          badge.textContent = "Disconnected";
+          badge.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+          badge.style.color = "var(--danger)";
+        }
+        container.innerHTML = '<div class="placeholder-text">Configure GitHub Integration in Settings to link repositories.</div>';
+        return;
+      }
+      
+      const repos = data.github_result ? (data.github_result.repositories || []) : [];
+      if (badge) {
+        badge.textContent = "Connected";
+        badge.style.backgroundColor = "rgba(16, 185, 129, 0.15)";
+        badge.style.color = "var(--success)";
+      }
+      
+      container.innerHTML = '';
+      if (repos.length === 0) {
+        container.innerHTML = '<div class="placeholder-text">No repositories linked.</div>';
+        return;
+      }
+      
+      repos.slice(0, 5).forEach(r => {
+        const item = document.createElement('div');
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        item.style.padding = '0.5rem 0';
+        item.style.borderBottom = '1px solid var(--border)';
+        item.style.fontSize = '0.8rem';
+        item.style.textAlign = 'left';
+        
+        item.innerHTML = `
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:600; color:var(--text-main); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${r.name}</div>
+            <div style="font-size:0.7rem; color:var(--text-muted); text-overflow:ellipsis; overflow:hidden; white-space:nowrap; margin-top:0.1rem;">${r.description || 'No description.'}</div>
+          </div>
+          <a href="${r.html_url}" target="_blank" class="action-link" style="margin-left:1rem; flex-shrink:0;">GitHub</a>
+        `;
+        container.appendChild(item);
+      });
+      if (container.lastChild) {
+        container.lastChild.style.borderBottom = 'none';
+      }
+    } else {
+      if (badge) {
+        badge.textContent = "Error";
+        badge.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+        badge.style.color = "var(--danger)";
+      }
+      container.innerHTML = '<div class="placeholder-text">Failed to sync GitHub. Check your configuration.</div>';
+    }
+  } catch (e) {
+    if (badge) {
+      badge.textContent = "Offline";
+      badge.style.backgroundColor = "rgba(107, 114, 128, 0.1)";
+      badge.style.color = "var(--text-muted)";
+    }
+    container.innerHTML = '<div class="placeholder-text">GitHub MCP Server Unreachable.</div>';
+  }
+}
+
+function setupGitHubPanelBindings() {
+  const selector = el('github-repo-selector');
+  if (selector) {
+    selector.addEventListener('change', (e) => {
+      if (e.target.value) {
+        selectGitHubRepo(e.target.value);
+      }
+    });
+  }
+  
+  const refreshBtn = el('github-panel-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      Sound.playClick();
+      loadGitHubPanel();
+    });
+  }
+  
+  document.querySelectorAll('.github-sub-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      Sound.playClick();
+      document.querySelectorAll('.github-sub-tab').forEach(t => {
+        t.classList.remove('active');
+        t.style.borderBottomColor = 'transparent';
+        t.style.color = 'var(--text-muted)';
+      });
+      tab.classList.add('active');
+      tab.style.borderBottomColor = 'var(--primary)';
+      tab.style.color = 'var(--primary)';
+      
+      currentGitHubSubtab = tab.getAttribute('data-subtab');
+      loadGitHubSubtabContent();
+    });
+  });
+  
+  const searchInput = el('github-code-search-input');
+  const searchBtn = el('github-code-search-btn');
+  const handleSearch = () => {
+    if (!activeGitHubRepo) {
+      alert("Please select a repository first.");
+      return;
+    }
+    const q = searchInput.value.trim();
+    if (q) {
+      Sound.playClick();
+      searchGitHubCode(activeGitHubRepo, q);
+    }
+  };
+  if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+  if (searchInput) {
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleSearch();
+    });
+  }
+  
+  const clearSearchBtn = el('github-clear-search-btn');
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+      Sound.playClick();
+      el('github-subpanel-search').style.display = 'none';
+      loadGitHubSubtabContent();
+    });
+  }
+  
+  const newIssueBtn = el('github-new-issue-btn');
+  const cancelIssueBtn = el('github-cancel-issue-btn');
+  const formCont = el('github-new-issue-form-container');
+  
+  if (newIssueBtn) {
+    newIssueBtn.addEventListener('click', () => {
+      Sound.playClick();
+      formCont.style.display = 'flex';
+    });
+  }
+  if (cancelIssueBtn) {
+    cancelIssueBtn.addEventListener('click', () => {
+      Sound.playClick();
+      formCont.style.display = 'none';
+    });
+  }
+  
+  const submitIssueBtn = el('github-submit-issue-btn');
+  if (submitIssueBtn) {
+    submitIssueBtn.addEventListener('click', () => {
+      if (!activeGitHubRepo) return;
+      const title = el('github-issue-title').value.trim();
+      const body = el('github-issue-body').value.trim();
+      createGitHubIssue(activeGitHubRepo, title, body);
+    });
+  }
+}
+
+// ── JIRA WORK BOARD CORE CONTROLLER ──
+let allJiraIssues = [];
+let selectedJiraIssue = null;
+
+async function loadJiraPanel() {
+  const discView = el('jira-disconnected-view');
+  const connView = el('jira-connected-view');
+  if (!discView || !connView) return;
+
+  try {
+    const res = await apiFetch('/api/jira/config');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === 'connected') {
+        discView.style.display = 'none';
+        connView.style.display = 'grid';
+        
+        // Populate setup inputs if empty
+        el('jira-url-input').value = data.url || '';
+        el('jira-email-input').value = data.email || '';
+        
+        await loadJiraProjects();
+        await loadJiraIssues();
+      } else {
+        discView.style.display = 'flex';
+        connView.style.display = 'none';
+        el('jira-setup-status').textContent = 'Status: Disconnected';
+        el('jira-setup-status').style.color = 'var(--text-muted)';
+      }
+    }
+  } catch (e) {
+    console.error("Error loading Jira configuration:", e);
+  }
+}
+
+async function loadJiraProjects() {
+  const selector = el('jira-project-selector');
+  if (!selector) return;
+  try {
+    const res = await apiFetch('/api/jira/projects');
+    if (res.ok) {
+      const data = await res.json();
+      const projects = data.projects || [];
+      
+      selector.innerHTML = '<option value="">All Projects</option>';
+      projects.forEach(p => {
+        selector.innerHTML += `<option value="${p.key}">${p.name} (${p.key})</option>`;
+      });
+    }
+  } catch (e) {
+    console.error("Error loading Jira projects:", e);
+  }
+}
+
+async function loadJiraIssues() {
+  const listCont = el('jira-issues-list');
+  const countBadge = el('jira-issues-count-badge');
+  if (!listCont) return;
+  
+  listCont.innerHTML = '<div class="loading-state">Syncing issues board...</div>';
+  
+  const projectKey = el('jira-project-selector').value;
+  let url = '/api/jira/issues';
+  if (projectKey) {
+    url += `?jql=${encodeURIComponent('project = ' + projectKey + ' AND resolution = Unresolved')}`;
+  }
+  
+  try {
+    const res = await apiFetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      allJiraIssues = data.issues || [];
+      listCont.innerHTML = '';
+      
+      if (countBadge) {
+        countBadge.textContent = `${allJiraIssues.length} Issues`;
+      }
+      
+      if (allJiraIssues.length === 0) {
+        listCont.innerHTML = '<div class="placeholder-text">No unresolved tickets found.</div>';
+        return;
+      }
+      
+      allJiraIssues.forEach(issue => {
+        const item = document.createElement('div');
+        item.className = 'task-row';
+        item.style.cursor = 'pointer';
+        item.addEventListener('click', () => openJiraIssueDetail(issue));
+        
+        const key = issue?.key || issue?.id || (issue?.fields && issue.fields.issueKey) || 'UNKNOWN';
+        const summary = issue?.fields?.summary || issue?.summary || issue?.name || 'No Summary';
+        const statusName = issue?.fields?.status?.name || issue?.status || 'To Do';
+        const typeName = issue?.fields?.issuetype?.name || issue?.type || 'Task';
+        
+        // Determine status badge class
+        let badgeClass = 'badge-low';
+        const statusLower = (typeof statusName === 'string') ? statusName.toLowerCase() : '';
+        if (statusLower === 'in progress') badgeClass = 'badge-medium';
+        if (statusLower === 'done' || statusLower === 'resolved') badgeClass = 'badge-low';
+        if (statusLower === 'to do' || statusLower === 'backlog') badgeClass = 'badge-high';
+        
+        item.innerHTML = `
+          <div class="task-left">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+            <div class="task-details">
+              <h3>[${key}] ${summary}</h3>
+              <span style="font-size:0.7rem; color:var(--text-muted);">${typeName}</span>
+            </div>
+          </div>
+          <div class="task-right">
+            <span class="badge ${badgeClass}">${statusName}</span>
+          </div>
+        `;
+        listCont.appendChild(item);
+      });
+    } else {
+      listCont.innerHTML = '<div class="placeholder-text text-danger">Failed to sync Jira issues. Check connection.</div>';
+    }
+  } catch (e) {
+    listCont.innerHTML = '<div class="placeholder-text text-danger">Jira Connection failed.</div>';
+  }
+}
+
+function openJiraIssueDetail(issue) {
+  selectedJiraIssue = issue;
+  
+  el('jira-modal-issue-key').textContent = issue.key;
+  el('jira-modal-issue-summary').textContent = issue.fields?.summary || '';
+  
+  const statusEl = el('jira-modal-issue-status');
+  const statusName = issue.fields?.status?.name || 'To Do';
+  statusEl.textContent = statusName;
+  statusEl.className = 'badge';
+  if (statusName.toLowerCase() === 'in progress') statusEl.classList.add('badge-medium');
+  else if (statusName.toLowerCase() === 'done' || statusName.toLowerCase() === 'resolved') statusEl.classList.add('badge-low');
+  else statusEl.classList.add('badge-high');
+  
+  el('jira-modal-issue-type').textContent = issue.fields?.issuetype?.name || 'Task';
+  
+  // Render description
+  const descEl = el('jira-modal-issue-description');
+  let description = issue.fields?.description;
+  if (description && typeof description === 'object') {
+    // If Atlassian ADF format
+    try {
+      description = description.content?.map(c => c.content?.map(t => t.text).join('')).join('\n') || '';
+    } catch(e) {
+      description = JSON.stringify(description);
+    }
+  }
+  descEl.textContent = description || 'No description provided.';
+  
+  // Populate transition dropdown options if available
+  const transitionSelect = el('jira-modal-transition-select');
+  transitionSelect.innerHTML = '<option value="">Choose Transition...</option>';
+  // Provide basic common transitions
+  transitionSelect.innerHTML += `
+    <option value="To Do">To Do</option>
+    <option value="In Progress">In Progress</option>
+    <option value="Done">Done (Resolve)</option>
+  `;
+
+  // Render comments
+  renderJiraComments(issue);
+  
+  el('jira-issue-detail-modal').style.display = 'flex';
+  Sound.playClick();
+}
+
+function renderJiraComments(issue) {
+  const commList = el('jira-modal-comments-list');
+  if (!commList) return;
+  commList.innerHTML = '';
+  
+  const comments = issue.fields?.comment?.comments || [];
+  if (comments.length === 0) {
+    commList.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:0.5rem 0;">No comments yet.</div>';
+    return;
+  }
+  
+  comments.forEach(c => {
+    const item = document.createElement('div');
+    item.style.padding = '0.5rem';
+    item.style.borderRadius = 'var(--radius)';
+    item.style.border = '1px solid var(--border)';
+    item.style.background = 'var(--bg-app)';
+    item.style.fontSize = '0.8rem';
+    
+    const author = c.author?.displayName || 'User';
+    let body = c.body;
+    if (body && typeof body === 'object') {
+      try {
+        body = body.content?.map(co => co.content?.map(t => t.text).join('')).join('\n') || '';
+      } catch(err) {
+        body = JSON.stringify(body);
+      }
+    }
+    
+    item.innerHTML = `
+      <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
+        <strong>${author}</strong>
+        <span style="font-size:0.7rem; color:var(--text-muted);">${c.created ? new Date(c.created).toLocaleString() : ''}</span>
+      </div>
+      <p style="color:var(--text-main); white-space:pre-wrap; line-height:1.4;">${body}</p>
+    `;
+    commList.appendChild(item);
+  });
+}
+
+function setupJiraPanelBindings() {
+  // Setup Connect
+  const setupConnBtn = el('btn-jira-setup-connect');
+  if (setupConnBtn) {
+    setupConnBtn.addEventListener('click', async () => {
+      const url = el('jira-url-input').value.trim();
+      const email = el('jira-email-input').value.trim();
+      const token = el('jira-token-input').value;
+      
+      if (!url || !email || !token) {
+        alert("Please fill in all setup fields.");
+        return;
+      }
+      
+      setupConnBtn.textContent = 'Connecting...';
+      Sound.playClick();
+      
+      try {
+        const res = await apiFetch('/api/jira/connect', {
+          method: 'POST',
+          body: { url, email, token }
+        });
+        if (res.ok) {
+          alert("Jira connected successfully!");
+          Sound.playSuccess();
+          el('jira-disconnected-view').style.display = 'none';
+          el('jira-connected-view').style.display = 'grid';
+          await loadJiraPanel();
+          updateSidebarActiveMcps();
+        } else {
+          const err = await res.json();
+          alert("Connection failed: " + (err.detail || 'check settings'));
+        }
+      } catch(e) {
+        alert("Connection failed: network error.");
+      } finally {
+        setupConnBtn.textContent = 'Connect Account';
+      }
+    });
+  }
+  
+  // Panel Disconnect
+  const pnlDiscBtn = el('btn-jira-panel-disconnect');
+  if (pnlDiscBtn) {
+    pnlDiscBtn.addEventListener('click', async () => {
+      if (!confirm("Are you sure you want to disconnect Jira?")) return;
+      Sound.playClick();
+      try {
+        const res = await apiFetch('/api/jira/disconnect', { method: 'POST' });
+        if (res.ok) {
+          Sound.playSuccess();
+          el('jira-url-input').value = '';
+          el('jira-email-input').value = '';
+          el('jira-token-input').value = '';
+          await loadJiraPanel();
+          updateSidebarActiveMcps();
+        }
+      } catch(e) {
+        console.error("Disconnect failed:", e);
+      }
+    });
+  }
+  
+  // Refresh button
+  const refBtn = el('jira-panel-refresh-btn');
+  if (refBtn) {
+    refBtn.addEventListener('click', () => {
+      Sound.playClick();
+      loadJiraIssues();
+    });
+  }
+  
+  // Project select change
+  const selector = el('jira-project-selector');
+  if (selector) {
+    selector.addEventListener('change', () => {
+      Sound.playClick();
+      loadJiraIssues();
+    });
+  }
+  
+  // Create issue form
+  const createForm = el('jira-create-issue-form');
+  if (createForm) {
+    createForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      Sound.playClick();
+      
+      const project_key = el('jira-create-project-key').value.trim();
+      const summary = el('jira-create-summary').value.trim();
+      const description = el('jira-create-description').value.trim();
+      const issue_type = el('jira-create-type').value;
+      
+      try {
+        const res = await apiFetch('/api/jira/issues', {
+          method: 'POST',
+          body: { project_key, summary, description, issue_type }
+        });
+        if (res.ok) {
+          alert("Jira Ticket Created Successfully!");
+          Sound.playSuccess();
+          createForm.reset();
+          loadJiraIssues();
+        } else {
+          const err = await res.json();
+          alert("Failed to create issue: " + (err.detail || 'check parameters'));
+        }
+      } catch(err) {
+        alert("Failed to create issue due to networking.");
+      }
+    });
+  }
+  
+  // Close details modal
+  const closeModalBtn = el('close-jira-detail-btn');
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+      Sound.playClick();
+      el('jira-issue-detail-modal').style.display = 'none';
+      selectedJiraIssue = null;
+    });
+  }
+  
+  // Transition apply
+  const transBtn = el('btn-jira-modal-transition');
+  if (transBtn) {
+    transBtn.addEventListener('click', async () => {
+      if (!selectedJiraIssue) return;
+      const transName = el('jira-modal-transition-select').value;
+      if (!transName) {
+        alert("Please select a status transition.");
+        return;
+      }
+      
+      // Map names to mockup IDs (Jira v3 uses transition ids, fallback map)
+      let transition_id = "21"; // In progress fallback
+      if (transName === 'To Do') transition_id = "11";
+      if (transName === 'Done') transition_id = "31";
+      
+      Sound.playClick();
+      try {
+        const res = await apiFetch(`/api/jira/issues/${selectedJiraIssue.key}/transition`, {
+          method: 'PUT',
+          body: { transition_id }
+        });
+        if (res.ok) {
+          Sound.playSuccess();
+          el('jira-issue-detail-modal').style.display = 'none';
+          loadJiraIssues();
+        } else {
+          const err = await res.json();
+          alert("Transition failed: " + (err.detail || 'check workflow'));
+        }
+      } catch(e) {
+        console.error(e);
+      }
+    });
+  }
+  
+  // Add Comment Form
+  const commentForm = el('jira-modal-comment-form');
+  if (commentForm) {
+    commentForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!selectedJiraIssue) return;
+      
+      const commentInput = el('jira-modal-comment-input');
+      const comment = commentInput.value.trim();
+      if (!comment) return;
+      
+      Sound.playClick();
+      try {
+        const res = await apiFetch(`/api/jira/issues/${selectedJiraIssue.key}/comment`, {
+          method: 'POST',
+          body: { comment }
+        });
+        if (res.ok) {
+          Sound.playSuccess();
+          commentInput.value = '';
+          // Re-fetch issues details to render comment
+          const detailsUrl = `/api/jira/issues?jql=${encodeURIComponent('key = ' + selectedJiraIssue.key)}`;
+          const detRes = await apiFetch(detailsUrl);
+          if (detRes.ok) {
+            const detData = await detRes.json();
+            if (detData.issues && detData.issues.length > 0) {
+              selectedJiraIssue = detData.issues[0];
+              renderJiraComments(selectedJiraIssue);
+            }
+          }
+        }
+      } catch(err) {
+        console.error(err);
+      }
+    });
+  }
+}
+
+
+// ── MCP MANAGEMENT SIDEBAR PAGE CORE CONTROLLER ──
+let activeMcpCardTab = null;
+
+async function loadMcpPanel() {
+  const settingsRes = await apiFetch('/api/settings');
+  const settings = settingsRes.ok ? await settingsRes.json() : {};
+  const jiraRes = await apiFetch('/api/jira/config');
+  const jira = jiraRes.ok ? await jiraRes.json() : {};
+
+  // Verify GitHub
+  const githubActive = !!settings.github_access_token || !!settings.mcp_github_url;
+  updateMcpCardIndicator('github', githubActive);
+  
+  // Verify Jira
+  const jiraActive = jira.status === 'connected';
+  updateMcpCardIndicator('jira', jiraActive);
+
+  // Verify Figma
+  const figmaActive = !!settings.figma_access_token || !!settings.mcp_figma_url;
+  updateMcpCardIndicator('figma', figmaActive);
+
+  // Verify Gmail MCP
+  const gmailActive = !!settings.gmail_address;
+  updateMcpCardIndicator('gmail', gmailActive);
+
+  // Verify Files MCP
+  let filesWhitelist = [];
+  try {
+    const whitelistRes = await apiFetch('/api/files/whitelist');
+    if (whitelistRes.ok) {
+      const wData = await whitelistRes.json();
+      filesWhitelist = wData.folders || [];
+    }
+  } catch(e) {}
+  const filesActive = filesWhitelist.length > 0;
+  updateMcpCardIndicator('files', filesActive);
+
+  // Re-load configs of selected cards in edit views
+  if (activeMcpCardTab) {
+    openMcpConfigView(activeMcpCardTab, settings, jira, filesWhitelist);
+  }
+}
+
+function updateMcpCardIndicator(mcpKey, isActive) {
+  const dot = el(`mcp-status-dot-${mcpKey}`);
+  const txt = el(`mcp-status-text-${mcpKey}`);
+  if (dot && txt) {
+    dot.className = isActive ? 'status-indicator online' : 'status-indicator offline';
+    txt.textContent = isActive ? 'Active' : 'Inactive';
+    txt.style.color = isActive ? 'var(--success)' : 'var(--text-muted)';
+  }
+}
+
+function openMcpConfigView(mcpKey, settings, jira, filesWhitelist = []) {
+  // Hide placeholder and all form bodies
+  el('mcp-config-placeholder').style.display = 'none';
+  const keys = ['github', 'jira', 'figma', 'gmail', 'files'];
+  keys.forEach(k => {
+    const f = el(`mcp-config-form-${k}`);
+    if (f) f.style.display = 'none';
+  });
+
+  // Display selected
+  const form = el(`mcp-config-form-${mcpKey}`);
+  if (!form) return;
+  form.style.display = 'flex';
+
+  // Populate inputs
+  if (mcpKey === 'github') {
+    el('mcp-github-token').value = settings.github_access_token || '';
+    el('mcp-github-url').value = settings.mcp_github_url || '';
+  } else if (mcpKey === 'jira') {
+    el('mcp-jira-url').value = jira.url || '';
+    el('mcp-jira-email').value = jira.email || '';
+    el('mcp-jira-token').value = '';
+  } else if (mcpKey === 'figma') {
+    el('mcp-figma-token').value = settings.figma_access_token || '';
+    el('mcp-figma-url').value = settings.mcp_figma_url || '';
+  } else if (mcpKey === 'gmail') {
+    el('mcp-gmail-address').value = settings.gmail_address || '';
+    el('mcp-gmail-password').value = '';
+  } else if (mcpKey === 'files') {
+    renderMcpFilesWhitelist(filesWhitelist);
+  }
+}
+
+/* Helper: create a DOM item for a whitelist folder */
+function createFolderWhitelistItem(path) {
+  const item = document.createElement('div');
+  item.className = 'files-folder-item';
+  item.setAttribute('data-path', path);
+  item.style.display = 'flex';
+  item.style.alignItems = 'center';
+  item.style.justifyContent = 'space-between';
+  item.style.padding = '0.35rem 0.5rem';
+  item.style.border = '1px solid var(--border)';
+  item.style.borderRadius = '6px';
+  item.style.background = 'var(--bg-card)';
+
+  const left = document.createElement('div');
+  left.style.display = 'flex';
+  left.style.gap = '0.5rem';
+  left.style.alignItems = 'center';
+
+  const icon = document.createElement('svg');
+  icon.setAttribute('width','16');
+  icon.setAttribute('height','16');
+  icon.setAttribute('viewBox','0 0 24 24');
+  icon.innerHTML = '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>';
+
+  const span = document.createElement('span');
+  span.textContent = path;
+  span.style.fontSize = '0.85rem';
+  span.style.color = 'var(--text-main)';
+  span.style.overflow = 'hidden';
+  span.style.textOverflow = 'ellipsis';
+  span.style.whiteSpace = 'nowrap';
+  span.style.maxWidth = '520px';
+
+  left.appendChild(icon);
+  left.appendChild(span);
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'action-link';
+  removeBtn.textContent = 'Remove';
+  removeBtn.style.fontSize = '0.75rem';
+  removeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    item.remove();
+    updateMcpFilesStatus();
+  });
+
+  item.appendChild(left);
+  item.appendChild(removeBtn);
+  return item;
+}
+
+/* Render list of whitelist folders into the MCP Files form */
+function renderMcpFilesWhitelist(list) {
+  const container = el('mcp-files-folder-list');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!list || list.length === 0) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'loading-state';
+    placeholder.textContent = 'No folders configured yet.';
+    container.appendChild(placeholder);
+    return;
+  }
+  list.forEach(p => {
+    const item = createFolderWhitelistItem(p);
+    container.appendChild(item);
+  });
+  updateMcpFilesStatus();
+}
+
+/* Update small UI bits related to files whitelist (e.g., active badge) */
+function updateMcpFilesStatus() {
+  const container = el('mcp-files-folder-list');
+  if (!container) return;
+  const count = container.querySelectorAll('.files-folder-item').length;
+  // Optionally update a small count badge if present
+  const countEl = el('mcp-files-count');
+  if (countEl) {
+    countEl.textContent = `${count} folder(s)`;
+  }
+}
+
+function setupMcpPanelBindings() {
+  document.querySelectorAll('.mcp-card').forEach(card => {
+    card.addEventListener('click', async () => {
+      Sound.playClick();
+      const mcpKey = card.getAttribute('data-mcp');
+      activeMcpCardTab = mcpKey;
+      
+      // Update styling
+      document.querySelectorAll('.mcp-card').forEach(c => c.style.borderColor = 'var(--border)');
+      card.style.borderColor = 'var(--primary)';
+      
+      // Fetch latest values and render
+      const settingsRes = await apiFetch('/api/settings');
+      const settings = settingsRes.ok ? await settingsRes.json() : {};
+      const jiraRes = await apiFetch('/api/jira/config');
+      const jira = jiraRes.ok ? await jiraRes.json() : {};
+
+      let filesWhitelist = [];
+      if (mcpKey === 'files') {
+        try {
+          const whRes = await apiFetch('/api/files/whitelist');
+          if (whRes.ok) {
+            const wData = await whRes.json();
+            filesWhitelist = wData.folders || [];
+          }
+        } catch(e) {}
+      }
+      openMcpConfigView(mcpKey, settings, jira, filesWhitelist);
+    });
+  });
+
+  // GitHub connect
+  el('btn-mcp-github-connect').addEventListener('click', async () => {
+    Sound.playClick();
+    const token = el('mcp-github-token').value.trim();
+    const mcp_url = el('mcp-github-url').value.trim();
+    
+    const connectBtn = el('btn-mcp-github-connect');
+    connectBtn.textContent = 'Validating...';
+    
+    try {
+      const res = await apiFetch('/api/github/validate', {
+        method: 'POST',
+        body: { github_access_token: token || null, mcp_github_url: mcp_url || null }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'connected') {
+          // Save Settings
+          await apiFetch('/api/settings', {
+            method: 'POST',
+            body: { github_access_token: token || null, mcp_github_url: mcp_url || null }
+          });
+          alert("GitHub MCP server linked successfully!");
+          Sound.playSuccess();
+          loadMcpPanel();
+          updateSidebarActiveMcps();
+        } else {
+          alert("Validation failed: " + data.message);
+        }
+      }
+    } catch(err) {
+      alert("Verification failed due to connectivity error.");
+    } finally {
+      connectBtn.textContent = 'Validate & Save';
+    }
+  });
+
+  el('btn-mcp-github-disconnect').addEventListener('click', async () => {
+    if (!confirm("Disconnect GitHub MCP?")) return;
+    Sound.playClick();
+    await apiFetch('/api/settings', {
+      method: 'POST',
+      body: { github_access_token: null, mcp_github_url: null }
+    });
+    Sound.playSuccess();
+    el('mcp-github-token').value = '';
+    el('mcp-github-url').value = '';
+    loadMcpPanel();
+    updateSidebarActiveMcps();
+  });
+
+  el('btn-mcp-jira-connect').addEventListener('click', async () => {
+    Sound.playClick();
+    const url = el('mcp-jira-url').value.trim();
+    const email = el('mcp-jira-email').value.trim();
+    const token = el('mcp-jira-token').value;
+    
+    if (!url || !email || !token) {
+      alert("Please fill in URL, Email, and Token.");
+      return;
+    }
+    
+    const connectBtn = el('btn-mcp-jira-connect');
+    connectBtn.textContent = 'Connecting...';
+    
+    try {
+      const res = await apiFetch('/api/jira/connect', {
+        method: 'POST',
+        body: { url, email, token }
+      });
+      if (res.ok) {
+        alert("Jira Connected Successfully!");
+        Sound.playSuccess();
+        loadMcpPanel();
+        updateSidebarActiveMcps();
+      } else {
+        const err = await res.json();
+        alert("Verification failed: " + (err.detail || 'check parameters'));
+      }
+    } catch(e) {
+      alert("Jira verify failed: network error.");
+    } finally {
+      connectBtn.textContent = 'Validate & Save';
+    }
+  });
+
+  el('btn-mcp-jira-disconnect').addEventListener('click', async () => {
+    if (!confirm("Disconnect Jira server?")) return;
+    Sound.playClick();
+    await apiFetch('/api/jira/disconnect', { method: 'POST' });
+    Sound.playSuccess();
+    el('mcp-jira-url').value = '';
+    el('mcp-jira-email').value = '';
+    el('mcp-jira-token').value = '';
+    loadMcpPanel();
+    updateSidebarActiveMcps();
+  });
+
+  el('btn-mcp-figma-connect').addEventListener('click', async () => {
+    Sound.playClick();
+    const token = el('mcp-figma-token').value.trim();
+    const mcp_url = el('mcp-figma-url').value.trim();
+    
+    await apiFetch('/api/settings', {
+      method: 'POST',
+      body: { figma_access_token: token || null, mcp_figma_url: mcp_url || null }
+    });
+    alert("Figma MCP Saved!");
+    Sound.playSuccess();
+    loadMcpPanel();
+    updateSidebarActiveMcps();
+  });
+
+  el('btn-mcp-figma-disconnect').addEventListener('click', async () => {
+    Sound.playClick();
+    await apiFetch('/api/settings', {
+      method: 'POST',
+      body: { figma_access_token: null, mcp_figma_url: null }
+    });
+    Sound.playSuccess();
+    el('mcp-figma-token').value = '';
+    el('mcp-figma-url').value = '';
+    loadMcpPanel();
+    updateSidebarActiveMcps();
+  });
+
+  // Gmail MCP Connect
+  el('btn-mcp-gmail-connect').addEventListener('click', async () => {
+    Sound.playClick();
+    const address = el('mcp-gmail-address').value.trim();
+    const password = el('mcp-gmail-password').value;
+    
+    if (!address) {
+      alert("Please enter a Gmail address.");
+      return;
+    }
+    
+    const connectBtn = el('btn-mcp-gmail-connect');
+    connectBtn.textContent = 'Saving...';
+    
+    try {
+      const res = await apiFetch('/api/settings', {
+        method: 'POST',
+        body: { gmail_address: address, gmail_app_password: password || undefined }
+      });
+      if (res.ok) {
+        alert("Gmail credentials saved! Inbox will sync on next load.");
+        Sound.playSuccess();
+        loadMcpPanel();
+        updateSidebarActiveMcps();
+      }
+    } catch(e) {
+      alert("Failed to save Gmail settings.");
+    } finally {
+      connectBtn.textContent = 'Save & Test Connection';
+    }
+  });
+
+  el('btn-mcp-gmail-disconnect').addEventListener('click', async () => {
+    if (!confirm("Remove Gmail credentials?")) return;
+    Sound.playClick();
+    await apiFetch('/api/settings', {
+      method: 'POST',
+      body: { gmail_address: null, gmail_app_password: null }
+    });
+    Sound.playSuccess();
+    el('mcp-gmail-address').value = '';
+    el('mcp-gmail-password').value = '';
+    loadMcpPanel();
+    updateSidebarActiveMcps();
+  });
+
+  // Files MCP - Add Folder button
+  el('btn-mcp-files-add-folder').addEventListener('click', () => {
+    Sound.playClick();
+    const input = el('mcp-files-new-folder');
+    const folderPath = input.value.trim();
+    if (!folderPath) return;
+
+    const list = el('mcp-files-folder-list');
+    // Check for duplicate
+    const existing = Array.from(list.querySelectorAll('.files-folder-item')).map(item => item.getAttribute('data-path'));
+    if (existing.includes(folderPath)) {
+      alert("This folder is already in the whitelist.");
+      return;
+    }
+
+    const item = createFolderWhitelistItem(folderPath);
+    list.appendChild(item);
+    input.value = '';
+    updateMcpFilesStatus();
+  });
+
+  // Files MCP - Save whitelist button
+  el('btn-mcp-files-save').addEventListener('click', async () => {
+    Sound.playClick();
+    const list = el('mcp-files-folder-list');
+    const folders = Array.from(list.querySelectorAll('.files-folder-item')).map(item => item.getAttribute('data-path'));
+    
+    const saveBtn = el('btn-mcp-files-save');
+    saveBtn.textContent = 'Saving...';
+    
+    try {
+      const res = await apiFetch('/api/files/whitelist', {
+        method: 'POST',
+        body: { folders }
+      });
+      if (res.ok) {
+        alert(`Files whitelist saved with ${folders.length} folder(s)!`);
+        Sound.playSuccess();
+        loadMcpPanel();
+        updateSidebarActiveMcps();
+      }
+    } catch(e) {
+      alert("Failed to save file whitelist.");
+    } finally {
+      saveBtn.textContent = 'Save Whitelist';
+    }
+  });
+}
+
+
+// ── DYNAMIC SIDEBAR ACTIVE MCPS DISPLAY ──
+async function updateSidebarActiveMcps() {
+  const list = el('sidebar-active-mcps-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  try {
+    const settingsRes = await apiFetch('/api/settings');
+    const settings = settingsRes.ok ? await settingsRes.json() : {};
+    const jiraRes = await apiFetch('/api/jira/config');
+    const jira = jiraRes.ok ? await jiraRes.json() : {};
+
+    let filesActive = false;
+    try {
+      const whRes = await apiFetch('/api/files/whitelist');
+      if (whRes.ok) {
+        const wData = await whRes.json();
+        filesActive = (wData.folders || []).length > 0;
+      }
+    } catch(e) {}
+
+    const mcps = [
+      { key: 'github', name: 'GitHub', active: !!settings.github_access_token || !!settings.mcp_github_url },
+      { key: 'jira', name: 'Jira', active: jira.status === 'connected' },
+      { key: 'figma', name: 'Figma', active: !!settings.figma_access_token || !!settings.mcp_figma_url },
+      { key: 'gmail', name: 'Gmail', active: !!settings.gmail_address },
+      { key: 'files', name: 'Files', active: filesActive }
+    ];
+
+    let anyActive = false;
+    mcps.forEach(mcp => {
+      if (mcp.active) {
+        anyActive = true;
+        const item = document.createElement('div');
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.gap = '0.4rem';
+        item.style.fontSize = '0.75rem';
+        item.style.color = 'var(--text-main)';
+        item.style.fontWeight = '500';
+        item.style.padding = '0.2rem 0.4rem';
+        item.style.borderRadius = '4px';
+        item.style.background = 'rgba(16, 185, 129, 0.06)';
+        
+        item.innerHTML = `<span class="status-indicator online" style="width:6px; height:6px;"></span>${mcp.name}`;
+        list.appendChild(item);
+      }
+    });
+
+    if (!anyActive) {
+      list.innerHTML = '<span style="font-size:0.7rem; color:var(--text-muted); font-style:italic;">No active connections</span>';
+    }
+  } catch(e) {
+    console.error("Failed to load sidebar active indicators:", e);
+  }
+}
+
+
+// ── WORKSPACE SYSTEM & FILES LOGS CONTROLLER ──
+let currentLogsSubTab = 'system';
+
+async function loadLogsPanel() {
+  const screen = el('logs-output-screen');
+  if (!screen) return;
+  screen.textContent = 'Loading logs data...';
+
+  let url = '';
+  if (currentLogsSubTab === 'system') url = '/api/logs/system';
+  else if (currentLogsSubTab === 'actions') url = '/api/logs/actions';
+  else if (currentLogsSubTab === 'mcp') url = '/api/logs/mcp';
+  else if (currentLogsSubTab === 'files') url = '/api/logs/actions'; // filtered to files in frontend
+
+  try {
+    const res = await apiFetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      screen.innerHTML = '';
+      
+      if (currentLogsSubTab === 'system') {
+        screen.textContent = data.logs || 'System console is empty.';
+      } else if (currentLogsSubTab === 'actions') {
+        const rows = data.logs || [];
+        if (rows.length === 0) {
+          screen.textContent = 'No user action logs recorded.';
+          return;
+        }
+        rows.forEach(r => {
+          screen.innerHTML += `[${new Date(r.timestamp).toLocaleString()}] action_type: ${r.action_type} | details: ${r.details}\n`;
+        });
+      } else if (currentLogsSubTab === 'mcp') {
+        const rows = data.logs || [];
+        if (rows.length === 0) {
+          screen.textContent = 'No MCP logs recorded.';
+          return;
+        }
+        rows.forEach(r => {
+          screen.innerHTML += `[${new Date(r.timestamp).toLocaleString()}] MCP: ${r.mcp_name} | action: ${r.action} | arguments: ${r.details}\n`;
+        });
+      } else if (currentLogsSubTab === 'files') {
+        const rows = data.logs || [];
+        // Filter actions where action_type starts with file_
+        const fileRows = rows.filter(r => r.action_type.startsWith('file_'));
+        if (fileRows.length === 0) {
+          screen.textContent = 'No file access logs recorded.';
+          return;
+        }
+        fileRows.forEach(r => {
+          screen.innerHTML += `[${new Date(r.timestamp).toLocaleString()}] event: ${r.action_type} | filepath/query: ${r.details}\n`;
+        });
+      }
+    } else {
+      screen.textContent = 'Failed to fetch logs from server.';
+    }
+  } catch(e) {
+    screen.textContent = 'Log sync failed: network error.';
+  }
+}
+
+function setupLogsPanelBindings() {
+  document.querySelectorAll('.logs-sub-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      Sound.playClick();
+      document.querySelectorAll('.logs-sub-tab').forEach(t => {
+        t.classList.remove('active');
+        t.style.borderBottomColor = 'transparent';
+        t.style.color = 'var(--text-muted)';
+      });
+      tab.classList.add('active');
+      tab.style.borderBottomColor = 'var(--primary)';
+      tab.style.color = 'var(--primary)';
+      
+      currentLogsSubTab = tab.getAttribute('data-logtype');
+      loadLogsPanel();
+    });
+  });
+
+  const refreshBtn = el('logs-panel-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      Sound.playClick();
+      loadLogsPanel();
+    });
+  }
+}
+
 
