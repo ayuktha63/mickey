@@ -48,6 +48,31 @@ async function apiFetch(url, options = {}) {
   return fetch(url, options);
 }
 
+// Global Loader Controls
+function showLoader(text = "Loading...") {
+  const loader = el('global-loader');
+  const loaderText = el('global-loader-text');
+  if (loaderText) loaderText.textContent = text;
+  if (loader) loader.classList.add('active');
+}
+
+function hideLoader() {
+  const loader = el('global-loader');
+  if (loader) loader.classList.remove('active');
+}
+
+async function wrapWithLoader(asyncFn, message = "Loading...") {
+  showLoader(message);
+  try {
+    await asyncFn();
+  } catch (err) {
+    console.error("Error in action wrapped with loader:", err);
+  } finally {
+    hideLoader();
+  }
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
   if (sessionStorage.getItem('mickey_session_active') === 'true') {
     initApp();
@@ -60,6 +85,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // App Initialization
 async function initApp() {
+  // Create full-screen database loader overlay
+  const loader = document.createElement('div');
+  loader.id = 'mickey-init-loader';
+  loader.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(9, 9, 11, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100000; transition: opacity 0.4s ease; pointer-events: all; gap: 1.5rem;';
+  loader.innerHTML = `
+    <div style="width: 40px; height: 40px; border: 3px solid rgba(255, 255, 255, 0.05); border-top: 3px solid var(--primary); border-radius: 50%; animation: init-loader-spin 0.8s linear infinite;"></div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem; text-align: center;">
+      <div style="color: var(--text-main); font-weight: 600; font-size: 0.9rem; font-family: var(--font-sans); letter-spacing: -0.01em;">Initializing Workspace</div>
+      <div style="color: var(--text-muted); font-size: 0.75rem; font-family: var(--font-sans);">Connecting database & resources...</div>
+    </div>
+  `;
+  document.body.appendChild(loader);
+
   applyModeThemeClass();
   setupNavigation();
   setupTheme();
@@ -69,16 +107,32 @@ async function initApp() {
   setupClocks();
   setupDashboardWidgets();
 
-  // Load initial settings and model configuration
-  await fetchSettings();
-  await fetchModels();
-  
-  // Initial data loads
-  loadDashboardData();
-  loadConversations();
-  loadTasks();
-  loadNotes();
-  renderCalendar();
+  try {
+    // Load initial settings and model configuration
+    await fetchSettings();
+    await fetchModels();
+    
+    // Initial data loads in parallel
+    await Promise.all([
+      loadDashboardData(),
+      loadConversations(),
+      loadTasks(),
+      loadNotes(),
+      renderCalendar()
+    ]);
+  } catch (err) {
+    console.error("Error loading initial data:", err);
+  } finally {
+    // Fade out and remove database loader
+    setTimeout(() => {
+      loader.style.opacity = '0';
+      setTimeout(() => {
+        if (loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+      }, 400);
+    }, 150);
+  }
   
   // Form submission bindings
   el('chat-form').addEventListener('submit', handleChatSubmit);
@@ -91,7 +145,10 @@ async function initApp() {
   el('btn-github-validate').addEventListener('click', validateAndConnectGitHub);
   el('btn-github-disconnect').addEventListener('click', disconnectGitHub);
   if (el('refresh-dash-github-btn')) {
-    el('refresh-dash-github-btn').addEventListener('click', () => { Sound.playClick(); loadGitHubDashboardWidget(); });
+    el('refresh-dash-github-btn').addEventListener('click', () => { 
+      Sound.playClick(); 
+      wrapWithLoader(() => loadGitHubDashboardWidget(), "Refreshing GitHub dashboard widget..."); 
+    });
   }
 
 
@@ -101,9 +158,19 @@ async function initApp() {
 
   
   // Dashboard quick links refresh
-  el('refresh-gmail-btn').addEventListener('click', () => { Sound.playClick(); loadGmailFeed(); });
-  el('trigger-figma-btn').addEventListener('click', () => { Sound.playClick(); triggerFigmaSandbox(); });
-  el('refresh-weather-btn').addEventListener('click', () => { Sound.playClick(); loadWeatherForecast(); });
+  el('refresh-gmail-btn').addEventListener('click', () => { 
+    Sound.playClick(); 
+    wrapWithLoader(() => loadGmailFeed(), "Refreshing Gmail feed..."); 
+  });
+  el('trigger-figma-btn').addEventListener('click', () => { 
+    Sound.playClick(); 
+    wrapWithLoader(() => triggerFigmaSandbox(), "Triggering Figma sandbox..."); 
+  });
+  el('refresh-weather-btn').addEventListener('click', () => { 
+    Sound.playClick(); 
+    wrapWithLoader(() => loadWeatherForecast(), "Refreshing Weather forecast..."); 
+  });
+
 
   
   // Search listener for notes
@@ -124,6 +191,7 @@ async function initApp() {
   setupJiraPanelBindings();
   setupMcpPanelBindings();
   setupLogsPanelBindings();
+  setupFilesPanelBindings();
   updateSidebarActiveMcps();
 
   // Notifications Bell Click
@@ -158,7 +226,7 @@ async function initApp() {
   // Gmail Panel refresh
   el('gmail-panel-refresh-btn').addEventListener('click', () => {
     Sound.playClick();
-    loadGmailPanel();
+    wrapWithLoader(() => loadGmailPanel(), "Refreshing Gmail inbox...");
   });
 
   // Delete event binding
@@ -365,7 +433,7 @@ function setupModeToggle() {
 
   updateModeUI();
 
-  const switchMode = (mode) => {
+  const switchMode = async (mode) => {
     if (activeWorkspaceMode === mode) return;
     activeWorkspaceMode = mode;
     localStorage.setItem('mickey_mode', mode);
@@ -376,19 +444,33 @@ function setupModeToggle() {
     // Close details drawer if open
     closeDetailsPane();
 
-    // Refresh all data modules
-    applyDashboardWidgetsOrder();
-    loadDashboardData();
-    loadConversations();
-    loadTasks();
-    loadNotes();
-    renderCalendar();
-    fetchSettings();
-    updateSidebarActiveMcps();
-    if (currentTab === 'jira') loadJiraPanel();
-    if (currentTab === 'mcp') loadMcpPanel();
-    if (currentTab === 'logs') loadLogsPanel();
+    showLoader("Switching workspace mode...");
+
+    try {
+      // Refresh all data modules
+      applyDashboardWidgetsOrder();
+      const promises = [
+        loadDashboardData(),
+        loadConversations(),
+        loadTasks(),
+        loadNotes(),
+        renderCalendar(),
+        fetchSettings(),
+        fetchModels(),
+        updateSidebarActiveMcps()
+      ];
+      if (currentTab === 'jira') promises.push(loadJiraPanel());
+      if (currentTab === 'mcp') promises.push(loadMcpPanel());
+      if (currentTab === 'logs') promises.push(loadLogsPanel());
+
+      await Promise.allSettled(promises);
+    } catch (err) {
+      console.error("Error switching workspace mode:", err);
+    } finally {
+      hideLoader();
+    }
   };
+
 
   workBtn.addEventListener('click', () => switchMode('work'));
   personalBtn.addEventListener('click', () => switchMode('personal'));
@@ -646,6 +728,7 @@ function switchTab(tabId) {
   if (tabId === 'jira') loadJiraPanel();
   if (tabId === 'mcp') loadMcpPanel();
   if (tabId === 'logs') loadLogsPanel();
+  if (tabId === 'files') loadFilesPanel();
   if (tabId === 'ecosystem') loadEcosystemPage();
   if (tabId === 'analytics') loadAnalyticsPage();
 }
@@ -858,11 +941,40 @@ async function fetchModels() {
       chatModelSelect.value = activeSettingData.selected_model;
       settingsModelSelect.value = activeSettingData.selected_model;
       el('active-model-display').textContent = `ollama (${activeSettingData.selected_model})`;
+    } else {
+      chatModelSelect.value = "";
+      settingsModelSelect.value = "";
+      el('active-model-display').textContent = 'ollama (default)';
     }
+
+    // Set change handlers to save model choice instantly
+    chatModelSelect.onchange = (e) => {
+      const val = e.target.value;
+      settingsModelSelect.value = val;
+      saveSelectedModel(val);
+    };
+    settingsModelSelect.onchange = (e) => {
+      const val = e.target.value;
+      chatModelSelect.value = val;
+      saveSelectedModel(val);
+    };
   } catch (e) {
     console.error("Error fetching models:", e);
   }
 }
+
+async function saveSelectedModel(modelName) {
+  try {
+    await apiFetch('/api/settings', {
+      method: 'POST',
+      body: { selected_model: modelName || null }
+    });
+    el('active-model-display').textContent = modelName ? `ollama (${modelName})` : 'ollama (default)';
+  } catch (e) {
+    console.error("Error saving selected model:", e);
+  }
+}
+
 
 // Check Ollama status connection
 async function checkOllamaConnection() {
@@ -1901,10 +2013,65 @@ async function loadMessages(convId) {
     container.innerHTML = '';
     
     messages.forEach(m => {
-      const bubble = document.createElement('div');
-      bubble.className = `message-bubble ${m.role}`;
-      bubble.innerHTML = renderMarkdown(m.content);
-      container.appendChild(bubble);
+      let text = m.content;
+      
+      // Check if the message is purely a tool call JSON
+      let isToolCall = false;
+      let cleanText = text.trim();
+      let parsedTool = null;
+      if ((cleanText.startsWith('{') && cleanText.endsWith('}')) || (cleanText.startsWith('```') && cleanText.endsWith('```'))) {
+        try {
+          const stripped = cleanText.replace(/```json/g, '').replace(/```/g, '').trim();
+          const parsed = JSON.parse(stripped);
+          if (parsed.tool) {
+            isToolCall = true;
+            parsedTool = parsed;
+          }
+        } catch(e) {}
+      }
+      
+      if (isToolCall && parsedTool) {
+        const detailsEl = document.createElement('div');
+        detailsEl.className = 'efforts-container';
+        detailsEl.innerHTML = renderEffortsHtml(parsedTool.tool, parsedTool.args || {}, { status: "success" });
+        container.appendChild(detailsEl);
+        return;
+      }
+      
+      // Render efforts for this message
+      const efforts = parseEffortsFromText(text);
+      efforts.forEach(eff => {
+        const detailsEl = document.createElement('div');
+        detailsEl.className = 'efforts-container';
+        detailsEl.innerHTML = renderEffortsHtml(eff.tool, eff.args, eff.result);
+        container.appendChild(detailsEl);
+      });
+      
+      // Clean and render main message prose
+      let displayMsg = text.replace(/__efforts_start__:.+?\n/g, '').replace(/__efforts_end__:.+?\n/g, '').trim();
+      displayMsg = stripToolCall(displayMsg);
+      
+      if (displayMsg) {
+        const bubble = document.createElement('div');
+        bubble.className = `message-bubble ${m.role}`;
+        
+        let contentHtml = renderMarkdown(displayMsg);
+        const escapedText = encodeURIComponent(displayMsg);
+        const borderTopColor = m.role === 'user' ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.03)';
+        const btnTextColor = m.role === 'user' ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)';
+        
+        contentHtml += `
+          <div class="message-actions" style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid ${borderTopColor}; padding-top: 0.4rem; font-size: 0.75rem;">
+            <button class="copy-msg-btn" onclick="copyFullMessage(this)" data-text="${escapedText}" style="background: none; border: none; color: ${btnTextColor}; cursor: pointer; display: flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; padding: 0.2rem 0.4rem; border-radius: 4px; transition: color 0.15s ease;" title="Copy full message">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy</span>
+            </button>
+          </div>
+        `;
+        
+        bubble.innerHTML = contentHtml;
+        container.appendChild(bubble);
+      }
     });
     
     scrollToBottom('chat-messages');
@@ -1925,8 +2092,17 @@ function openEffortsPopup(toolCall, result) {
 async function handleChatSubmit(e) {
   e.preventDefault();
   const input = el('chat-input');
+  const sendBtn = el('chat-send-btn');
   const message = input.value.trim();
   if (!message) return;
+  
+  // Disable input & send button
+  input.disabled = true;
+  if (sendBtn) {
+    sendBtn.disabled = true;
+    sendBtn.style.opacity = '0.5';
+    sendBtn.style.cursor = 'not-allowed';
+  }
   
   input.value = '';
   syncLearningDelta += 5;
@@ -1935,7 +2111,22 @@ async function handleChatSubmit(e) {
   const container = el('chat-messages');
   const userBubble = document.createElement('div');
   userBubble.className = 'message-bubble user';
-  userBubble.textContent = message;
+  
+  const span = document.createElement('span');
+  span.textContent = message;
+  userBubble.appendChild(span);
+  
+  const escapedText = encodeURIComponent(message);
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'message-actions';
+  actionsDiv.style.cssText = 'display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 0.4rem; font-size: 0.75rem;';
+  actionsDiv.innerHTML = `
+    <button class="copy-msg-btn" onclick="copyFullMessage(this)" data-text="${escapedText}" style="background: none; border: none; color: rgba(255,255,255,0.8); cursor: pointer; display: flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; padding: 0.2rem 0.4rem; border-radius: 4px; transition: color 0.15s ease;" title="Copy full message">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span>Copy</span>
+    </button>
+  `;
+  userBubble.appendChild(actionsDiv);
   container.appendChild(userBubble);
   
   // Render loading assistant bubble with bouncing loading dots
@@ -1977,78 +2168,163 @@ async function handleChatSubmit(e) {
     let fullText = '';
     let effortsStartJson = null;
     let clearedIndicator = false;
+    let streamBuffer = '';
     
     while (true) {
       const { value, done } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value);
       
-      // Look for metadata chunk
-      if (chunk.includes('__metadata__:')) {
-        const metaStr = chunk.split('\n')[0].replace('__metadata__:', '');
-        const meta = JSON.parse(metaStr);
-        activeConversationId = meta.conversation_id;
-        loadConversations();
-        continue;
+      let chunk = '';
+      if (value) {
+        chunk = decoder.decode(value, { stream: !done });
       }
+      streamBuffer += chunk;
       
-      // Clear the typing dots indicator on the first actual content chunk
-      if (!clearedIndicator) {
-        assistantBubble.innerHTML = '';
-        clearedIndicator = true;
-      }
-      
-      // Handle reasoning efforts block
-      if (chunk.includes('__efforts_start__:')) {
-        const parts = chunk.split('__efforts_start__:');
-        const effortJsonStr = parts[1].split('\n')[0];
-        effortsStartJson = JSON.parse(effortJsonStr);
-        
-        // Append clickable Efforts reasoning line
-        const link = document.createElement('div');
-        link.className = 'efforts-line';
-        link.innerHTML = `<span>🔍 Reasoning: Invoking tool <strong>"${effortsStartJson.tool}"</strong></span>`;
-        link.onclick = () => openEffortsPopup(effortsStartJson, { status: "pending" });
-        assistantBubble.appendChild(link);
-        scrollToBottom('chat-messages');
-        continue;
-      }
-
-      if (chunk.includes('__efforts_end__:')) {
-        const parts = chunk.split('__efforts_end__:');
-        const effortResultStr = parts[1].split('\n')[0];
-        const effortsResultJson = JSON.parse(effortResultStr);
-        
-        // Find the link inside bubble and bind final result
-        const links = assistantBubble.querySelectorAll('.efforts-line');
-        if (links.length > 0) {
-          const lastLink = links[links.length - 1];
-          lastLink.innerHTML = `<span>✓ Completed tool <strong>"${effortsStartJson.tool}"</strong> (view detailed efforts logs)</span>`;
-          lastLink.onclick = () => openEffortsPopup(effortsStartJson, effortsResultJson);
+      // Extract and process any complete __metadata__: lines
+      let metaIdx;
+      while ((metaIdx = streamBuffer.indexOf('__metadata__:')) !== -1) {
+        const nextNewLine = streamBuffer.indexOf('\n', metaIdx);
+        if (nextNewLine !== -1) {
+          const metaLine = streamBuffer.substring(metaIdx, nextNewLine);
+          try {
+            const metaStr = metaLine.replace('__metadata__:', '');
+            const meta = JSON.parse(metaStr);
+            activeConversationId = meta.conversation_id;
+            loadConversations();
+          } catch(e) {
+            console.error("Error parsing metadata:", e);
+          }
+          streamBuffer = streamBuffer.substring(0, metaIdx) + streamBuffer.substring(nextNewLine + 1);
+        } else {
+          break;
         }
-        continue;
       }
       
-      // Regular response chunk
-      fullText += chunk;
-      
-      // Format text correctly
-      const cleanText = fullText.replace(/__efforts_start__:.+?\n/g, '').replace(/__efforts_end__:.+?\n/g, '');
-      
-      // Append text
-      const textSpan = assistantBubble.querySelector('.response-text');
-      if (textSpan) {
-        textSpan.innerHTML = renderMarkdown(cleanText);
-      } else {
-        const span = document.createElement('span');
-        span.className = 'response-text';
-        span.innerHTML = renderMarkdown(cleanText);
-        assistantBubble.appendChild(span);
+      // Extract and process any complete __efforts_start__: lines
+      let startIdx;
+      while ((startIdx = streamBuffer.indexOf('__efforts_start__:')) !== -1) {
+        const nextNewLine = streamBuffer.indexOf('\n', startIdx);
+        if (nextNewLine !== -1) {
+          const effortLine = streamBuffer.substring(startIdx, nextNewLine);
+          try {
+            const effortJsonStr = effortLine.replace('__efforts_start__:', '');
+            effortsStartJson = JSON.parse(effortJsonStr);
+            
+            // Append collapsible efforts card
+            const detailsEl = document.createElement('div');
+            detailsEl.className = 'efforts-container';
+            detailsEl.innerHTML = renderEffortsHtml(effortsStartJson.tool, effortsStartJson.args, { status: "pending" });
+            assistantBubble.appendChild(detailsEl);
+            scrollToBottom('chat-messages');
+          } catch (e) {
+            console.error("Error parsing efforts start:", e);
+          }
+          streamBuffer = streamBuffer.substring(0, startIdx) + streamBuffer.substring(nextNewLine + 1);
+        } else {
+          break;
+        }
       }
+      
+      // Extract and process any complete __efforts_end__: lines
+      let endIdx;
+      while ((endIdx = streamBuffer.indexOf('__efforts_end__:')) !== -1) {
+        const nextNewLine = streamBuffer.indexOf('\n', endIdx);
+        if (nextNewLine !== -1) {
+          const effortEndLine = streamBuffer.substring(endIdx, nextNewLine);
+          try {
+            const effortResultStr = effortEndLine.replace('__efforts_end__:', '');
+            const effortsResultJson = JSON.parse(effortResultStr);
+            
+            // Find the last efforts-container and update it
+            const containers = assistantBubble.querySelectorAll('.efforts-container');
+            if (containers.length > 0 && effortsStartJson) {
+              const lastContainer = containers[containers.length - 1];
+              lastContainer.innerHTML = renderEffortsHtml(effortsStartJson.tool, effortsStartJson.args, effortsResultJson);
+            }
+          } catch (e) {
+            console.error("Error parsing efforts end:", e);
+          }
+          streamBuffer = streamBuffer.substring(0, endIdx) + streamBuffer.substring(nextNewLine + 1);
+        } else {
+          break;
+        }
+      }
+      
+      // Determine what displayable text we can show immediately
+      let displayableText = streamBuffer;
+      let holdIndex = -1;
+      
+      const markers = ['__metadata__:', '__efforts_start__:', '__efforts_end__:'];
+      for (const marker of markers) {
+        for (let i = 1; i < marker.length; i++) {
+          const sub = marker.substring(0, i);
+          if (streamBuffer.endsWith(sub)) {
+            const idx = streamBuffer.length - i;
+            if (holdIndex === -1 || idx < holdIndex) {
+              holdIndex = idx;
+            }
+          }
+        }
+      }
+      
+      if (holdIndex !== -1) {
+        displayableText = streamBuffer.substring(0, holdIndex);
+      }
+      
+      if (displayableText.trim() || clearedIndicator) {
+        if (!clearedIndicator && displayableText.trim()) {
+          assistantBubble.innerHTML = '';
+          clearedIndicator = true;
+        }
+        
+        const cleanText = displayableText.replace(/__efforts_start__:.+?\n/g, '').replace(/__efforts_end__:.+?\n/g, '');
+        const displayText = stripToolCall(cleanText);
+        
+        const textSpan = assistantBubble.querySelector('.response-text');
+        if (textSpan) {
+          textSpan.innerHTML = renderMarkdown(displayText);
+        } else if (displayText) {
+          const span = document.createElement('span');
+          span.className = 'response-text';
+          span.innerHTML = renderMarkdown(displayText);
+          assistantBubble.appendChild(span);
+        }
+        scrollToBottom('chat-messages');
+      }
+      
+      if (done) {
+        fullText = displayableText;
+        break;
+      }
+    }
+    
+    // Add copy actions to assistantBubble
+    const cleanText = fullText.replace(/__efforts_start__:.+?\n/g, '').replace(/__efforts_end__:.+?\n/g, '');
+    const displayText = stripToolCall(cleanText);
+    
+    if (displayText) {
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'message-actions';
+      actionsDiv.style.cssText = 'display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 0.4rem; font-size: 0.75rem;';
+      const escapedText = encodeURIComponent(displayText);
+      actionsDiv.innerHTML = `
+        <button class="copy-msg-btn" onclick="copyFullMessage(this)" data-text="${escapedText}" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; padding: 0.2rem 0.4rem; border-radius: 4px; transition: color 0.15s ease;" title="Copy full message">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>Copy</span>
+        </button>
+      `;
+      assistantBubble.appendChild(actionsDiv);
       scrollToBottom('chat-messages');
     }
   } catch (e) {
     assistantBubble.innerHTML = "Connection failed. Please ensure Ollama is serving on the backend.";
+  } finally {
+    // Re-enable inputs
+    input.disabled = false;
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.style.opacity = '';
+      sendBtn.style.cursor = '';
+    }
   }
 }
 
@@ -2073,18 +2349,574 @@ async function deleteConversation(id) {
   }
 }
 
-// Basic markdown-to-HTML parser for local chat responses
-function renderMarkdown(text) {
-  if (!text) return '';
-  return text
+// Helper for regex-based code syntax highlighting
+function highlightCode(code, lang) {
+  if (!code) return '';
+  
+  // Escape HTML first to prevent injection issues during highlighting
+  let escaped = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\n/g, '<br>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/```json([\s\S]+?)```/g, '<pre><code class="language-json">$1</code></pre>');
+    .replace(/>/g, "&gt;");
+  
+  const l = (lang || '').toLowerCase();
+  
+  // Inline styles for high-fidelity code rendering
+  const styleKeyword = 'color: #f472b6; font-weight: 600;'; // Pink
+  const styleString = 'color: #34d399;'; // Green
+  const styleComment = 'color: #71717a; font-style: italic;'; // Gray
+  const styleNumber = 'color: #fb923c;'; // Orange
+  const styleClass = 'color: #fbbf24;'; // Yellow
+  
+  const jsKeywords = /\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|import|export|from|class|extends|new|this|typeof|instanceof|async|await|try|catch|finally|throw|default|null|undefined|true|false)\b/g;
+  
+  const pyKeywords = /\b(def|return|if|elif|else|for|while|try|except|finally|raise|import|from|as|class|in|is|and|or|not|lambda|with|assert|pass|break|continue|None|True|False)\b/g;
+  
+  const javaKeywords = /\b(public|private|protected|class|interface|extends|implements|new|this|super|return|if|else|for|while|do|switch|case|break|continue|try|catch|finally|throw|throws|import|package|static|final|void|int|double|float|long|short|byte|char|boolean|true|false|null)\b/g;
+  
+  const cppKeywords = /\b(class|struct|union|enum|public|private|protected|void|int|float|double|char|bool|const|volatile|static|inline|virtual|override|final|return|if|else|for|while|do|switch|case|break|continue|try|catch|throw|new|delete|namespace|using|template|typename|std)\b/g;
+
+  const sqlKeywords = /\b(select|from|where|insert|into|update|delete|create|table|drop|alter|join|left|right|inner|outer|on|group|by|order|having|limit|offset|and|or|not|null|primary|key|foreign|references|index|values|set)\b/g;
+
+  if (l === 'json') {
+    escaped = escaped.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*")(\s*:)/g, `<span style="${styleKeyword}">$1</span>$3`);
+    escaped = escaped.replace(/(:\s*)("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*")/g, `$1<span style="${styleString}">$2</span>`);
+    escaped = escaped.replace(/\b(true|false|null|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b/g, `<span style="${styleNumber}">$1</span>`);
+    return escaped;
+  }
+  
+  // Comment tokenization
+  const commentPlaceholders = [];
+  escaped = escaped.replace(/(\/\/.*)/g, (match) => {
+    const ph = `__COMMENT_PH_${commentPlaceholders.length}__`;
+    commentPlaceholders.push(`<span style="${styleComment}">${match}</span>`);
+    return ph;
+  });
+  if (['python', 'py', 'sh', 'bash', 'yaml', 'dockerfile'].includes(l)) {
+    escaped = escaped.replace(/(#.*)/g, (match) => {
+      const ph = `__COMMENT_PH_${commentPlaceholders.length}__`;
+      commentPlaceholders.push(`<span style="${styleComment}">${match}</span>`);
+      return ph;
+    });
+  }
+  escaped = escaped.replace(/(\/\*[\s\S]*?\*\/)/g, (match) => {
+    const ph = `__COMMENT_PH_${commentPlaceholders.length}__`;
+    commentPlaceholders.push(`<span style="${styleComment}">${match}</span>`);
+    return ph;
+  });
+
+  // String tokenization
+  const stringPlaceholders = [];
+  escaped = escaped.replace(/"(\\.|[^"\\])*"/g, (match) => {
+    const ph = `__STRING_PH_${stringPlaceholders.length}__`;
+    stringPlaceholders.push(`<span style="${styleString}">${match}</span>`);
+    return ph;
+  });
+  escaped = escaped.replace(/'(\\.|[^'\\])*'/g, (match) => {
+    const ph = `__STRING_PH_${stringPlaceholders.length}__`;
+    stringPlaceholders.push(`<span style="${styleString}">${match}</span>`);
+    return ph;
+  });
+  escaped = escaped.replace(/`([\s\S]*?)`/g, (match) => {
+    const ph = `__STRING_PH_${stringPlaceholders.length}__`;
+    stringPlaceholders.push(`<span style="${styleString}">${match}</span>`);
+    return ph;
+  });
+
+  // Highlighting numbers
+  escaped = escaped.replace(/\b(\d+(?:\.\d+)?)\b/g, `<span style="${styleNumber}">$1</span>`);
+
+  // Highlighting keywords
+  if (['javascript', 'js', 'ts', 'typescript'].includes(l)) {
+    escaped = escaped.replace(jsKeywords, `<span style="${styleKeyword}">$1</span>`);
+  } else if (['python', 'py'].includes(l)) {
+    escaped = escaped.replace(pyKeywords, `<span style="${styleKeyword}">$1</span>`);
+  } else if (l === 'java') {
+    escaped = escaped.replace(javaKeywords, `<span style="${styleKeyword}">$1</span>`);
+  } else if (['cpp', 'c', 'cc'].includes(l)) {
+    escaped = escaped.replace(cppKeywords, `<span style="${styleKeyword}">$1</span>`);
+  } else if (l === 'sql') {
+    escaped = escaped.replace(sqlKeywords, `<span style="${styleKeyword}">$1</span>`);
+  } else {
+    escaped = escaped.replace(jsKeywords, `<span style="${styleKeyword}">$1</span>`);
+  }
+
+  // Restore string & comment content
+  stringPlaceholders.forEach((val, idx) => {
+    escaped = escaped.replace(`__STRING_PH_${idx}__`, val);
+  });
+  commentPlaceholders.forEach((val, idx) => {
+    escaped = escaped.replace(`__COMMENT_PH_${idx}__`, val);
+  });
+
+  return escaped;
+}
+
+// Parses JSON efforts/tool-calls from stored message formats
+function parseEffortsFromText(text) {
+  if (!text) return [];
+  const efforts = [];
+  const startRegex = /__efforts_start__:(.+?)\n/g;
+  const endRegex = /__efforts_end__:(.+?)\n/g;
+  
+  const starts = [];
+  let match;
+  while ((match = startRegex.exec(text)) !== null) {
+    starts.push({
+      index: match.index,
+      dataStr: match[1]
+    });
+  }
+  
+  const ends = [];
+  while ((match = endRegex.exec(text)) !== null) {
+    ends.push({
+      index: match.index,
+      dataStr: match[1]
+    });
+  }
+  
+  for (let i = 0; i < starts.length; i++) {
+    const start = starts[i];
+    let matchingEnd = null;
+    for (let j = 0; j < ends.length; j++) {
+      if (ends[j].index > start.index) {
+        matchingEnd = ends[j];
+        ends.splice(j, 1);
+        break;
+      }
+    }
+    
+    let args = {};
+    let toolName = "unknown";
+    try {
+      const parsedStart = JSON.parse(start.dataStr);
+      toolName = parsedStart.tool || "unknown";
+      args = parsedStart.args || {};
+    } catch (e) {}
+    
+    let result = { status: "pending" };
+    if (matchingEnd) {
+      try {
+        result = JSON.parse(matchingEnd.dataStr);
+      } catch (e) {}
+    }
+    
+    efforts.push({
+      tool: toolName,
+      args: args,
+      result: result
+    });
+  }
+  
+  return efforts;
+}
+
+// Formats tool executions as styling-compliant details cards
+function renderEffortsHtml(toolName, args, result) {
+  const argsStr = JSON.stringify(args, null, 2);
+  const resultStr = JSON.stringify(result, null, 2);
+  
+  const escapedArgs = argsStr.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const escapedResult = resultStr.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  
+  const statusIcon = result && result.status !== "pending" 
+    ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+    : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  
+  return `
+    <details class="efforts-details" style="margin: 0.5rem 0 0.5rem 2.5rem; max-width: 600px;">
+      <summary>
+        <svg class="chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s ease;"><polyline points="9 18 15 12 9 6"/></svg>
+        ${statusIcon}
+        <span>Used tool: <strong>${toolName}</strong></span>
+      </summary>
+      <div style="padding: 0.75rem; font-size: 0.75rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.5rem; max-height: 250px; overflow-y: auto; background-color: #09090b; text-align: left;">
+        <div>
+          <div style="color: var(--text-muted); font-weight: 600; margin-bottom: 0.2rem; text-transform: uppercase; font-size: 0.65rem;">Arguments</div>
+          <pre style="margin: 0; padding: 0.5rem; background: #18181b; border: 1px solid var(--border); border-radius: 4px; overflow-x: auto; font-family: monospace; color: #a1a1aa; white-space: pre-wrap; word-break: break-all;"><code>${escapedArgs}</code></pre>
+        </div>
+        <div>
+          <div style="color: var(--text-muted); font-weight: 600; margin-bottom: 0.2rem; text-transform: uppercase; font-size: 0.65rem;">Result</div>
+          <pre style="margin: 0; padding: 0.5rem; background: #18181b; border: 1px solid var(--border); border-radius: 4px; overflow-x: auto; font-family: monospace; color: #34d399; white-space: pre-wrap; word-break: break-all;"><code>${escapedResult}</code></pre>
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+// Robust markdown-to-HTML parser for local chat responses with list and code block formatting
+function renderMarkdown(text) {
+  if (!text) return '';
+  
+  let processedText = text;
+  
+  // Auto-close open code block during streaming to ensure it renders correctly
+  const occurrences = (processedText.match(/```/g) || []).length;
+  if (occurrences % 2 !== 0) {
+    processedText += '\n```';
+  }
+  
+  // Auto-close open thought tags during streaming
+  const openThoughts = (processedText.match(/<thought>/gi) || []).length;
+  const closeThoughts = (processedText.match(/<\/thought>/gi) || []).length;
+  if (openThoughts > closeThoughts) {
+    processedText += '</thought>';
+  }
+  
+  let html = processedText;
+  
+  // Extract and replace code blocks
+  const codeBlocks = [];
+  const codeBlockRegex = /```(\w*)\n([\s\S]*?)\n?```/g;
+  
+  html = html.replace(codeBlockRegex, (match, lang, code) => {
+    const placeholder = `__CODE_BLOCK_PLACEHOLDER_${codeBlocks.length}__`;
+    const displayLang = lang || 'code';
+    const highlightedCode = highlightCode(code, displayLang);
+    
+    const codeBlockHtml = `
+      <div class="chat-code-block">
+        <div class="code-block-header">
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #a1a1aa;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <span style="font-weight: 600; text-transform: lowercase;">${displayLang}</span>
+          </div>
+          <button class="copy-code-btn" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(code)}" title="Copy code">
+            <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+        <pre style="margin: 0; padding: 1rem; overflow-x: auto; color: #e4e4e7; line-height: 1.5; white-space: pre; font-family: 'Fira Code', 'Courier New', monospace;"><code>${highlightedCode}</code></pre>
+      </div>
+    `;
+    codeBlocks.push(codeBlockHtml);
+    return placeholder;
+  });
+  
+  // Escape HTML outside of code blocks to prevent raw injection
+  html = html
+    .replace(/&(?!amp;)/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+    
+  // Handle `<thought>` tags (which are escaped to `&lt;thought&gt;` and `&lt;/thought&gt;`)
+  html = html.replace(/&lt;thought&gt;([\s\S]*?)&lt;\/thought&gt;/gi, (match, thoughtContent) => {
+    return `
+      <details class="thought-details">
+        <summary>
+          <svg class="chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s ease;"><polyline points="9 18 15 12 9 6"/></svg>
+          <span>Thought process</span>
+        </summary>
+        <div style="padding: 0.75rem; font-size: 0.8rem; border-top: 1px solid var(--border); background-color: #09090b; color: var(--text-muted); white-space: pre-wrap; font-style: italic; line-height: 1.5; text-align: left;">${thoughtContent.trim()}</div>
+      </details>
+    `;
+  });
+    
+  // Inline code blocks `code`
+  html = html.replace(/`([^`\n]+)`/g, '<code style="background-color: rgba(99,102,241,0.1); color: var(--primary); padding: 0.15rem 0.35rem; border-radius: 4px; font-family: monospace; font-size: 0.85em;">$1</code>');
+  
+  // Bold and italics
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  
+  // Lists & Tables parsing (unordered, ordered, and tables)
+  const lines = html.split('\n');
+  let inList = false;
+  let inOrderedList = false;
+  let inTable = false;
+  let tableRows = [];
+  let parsedLines = [];
+  
+  lines.forEach(line => {
+    let trimmed = line.trim();
+    
+    // Detect headings
+    let isHeading = false;
+    let headingLevel = 0;
+    let headingText = '';
+    if (trimmed.startsWith('#')) {
+      const match = trimmed.match(/^(#{1,6})\s+(.+)$/);
+      if (match) {
+        isHeading = true;
+        headingLevel = match[1].length;
+        headingText = match[2];
+      }
+    }
+    
+    if (isHeading) {
+      if (inList) {
+        parsedLines.push('</ul>');
+        inList = false;
+      }
+      if (inOrderedList) {
+        parsedLines.push('</ol>');
+        inOrderedList = false;
+      }
+      if (inTable) {
+        inTable = false;
+        const tableHtml = buildTableHtml(tableRows);
+        const placeholderIdx = parsedLines.indexOf('__TABLE_PLACEHOLDER__');
+        if (placeholderIdx !== -1) {
+          parsedLines[placeholderIdx] = tableHtml;
+        }
+        tableRows = [];
+      }
+      
+      let fontSize = '1.25rem';
+      let marginTop = '1rem';
+      if (headingLevel === 1) { fontSize = '1.5rem'; marginTop = '1.25rem'; }
+      else if (headingLevel === 2) { fontSize = '1.35rem'; marginTop = '1.1rem'; }
+      else if (headingLevel === 3) { fontSize = '1.15rem'; marginTop = '1rem'; }
+      else if (headingLevel >= 4) { fontSize = '1rem'; marginTop = '0.75rem'; }
+      
+      parsedLines.push(`<h${headingLevel} style="font-size: ${fontSize}; font-weight: 600; margin-top: ${marginTop}; margin-bottom: 0.5rem; color: var(--text-main); line-height: 1.3;">${headingText}</h${headingLevel}>`);
+      return;
+    }
+    
+    // Detect table rows
+    const isTableRow = trimmed.startsWith('|') && trimmed.endsWith('|');
+    const isSeparatorRow = isTableRow && /^[|\s:-]+$/.test(trimmed);
+    
+    if (isTableRow) {
+      if (inList) {
+        parsedLines.push('</ul>');
+        inList = false;
+      }
+      if (inOrderedList) {
+        parsedLines.push('</ol>');
+        inOrderedList = false;
+      }
+      
+      if (!inTable) {
+        inTable = true;
+        tableRows = [];
+        parsedLines.push('__TABLE_PLACEHOLDER__');
+      }
+      
+      if (!isSeparatorRow) {
+        const cols = trimmed.split('|').map(c => c.trim()).filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
+        tableRows.push(cols);
+      }
+    } else {
+      if (inTable) {
+        inTable = false;
+        const tableHtml = buildTableHtml(tableRows);
+        const placeholderIdx = parsedLines.indexOf('__TABLE_PLACEHOLDER__');
+        if (placeholderIdx !== -1) {
+          parsedLines[placeholderIdx] = tableHtml;
+        }
+        tableRows = [];
+      }
+      
+      if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        if (!inList) {
+          if (inOrderedList) {
+            parsedLines.push('</ol>');
+            inOrderedList = false;
+          }
+          parsedLines.push('<ul style="margin: 0.5rem 0 0.75rem 0; padding-left: 1.5rem; list-style-type: disc; display: flex; flex-direction: column; gap: 0.25rem;">');
+          inList = true;
+        }
+        const itemContent = trimmed.substring(2);
+        parsedLines.push(`<li style="color: var(--text-main); font-size: 0.875rem; line-height: 1.6; margin-bottom: 0.25rem;">${itemContent}</li>`);
+      } else if (/^\d+\.\s/.test(trimmed)) {
+        if (!inOrderedList) {
+          if (inList) {
+            parsedLines.push('</ul>');
+            inList = false;
+          }
+          parsedLines.push('<ol style="margin: 0.5rem 0 0.75rem 0; padding-left: 1.5rem; list-style-type: decimal; display: flex; flex-direction: column; gap: 0.25rem;">');
+          inOrderedList = true;
+        }
+        const itemContent = trimmed.replace(/^\d+\.\s/, '');
+        parsedLines.push(`<li style="color: var(--text-main); font-size: 0.875rem; line-height: 1.6; margin-bottom: 0.25rem;">${itemContent}</li>`);
+      } else {
+        if (inList) {
+          parsedLines.push('</ul>');
+          inList = false;
+        }
+        if (inOrderedList) {
+          parsedLines.push('</ol>');
+          inOrderedList = false;
+        }
+        parsedLines.push(line);
+      }
+    }
+  });
+  
+  if (inTable) {
+    const tableHtml = buildTableHtml(tableRows);
+    const placeholderIdx = parsedLines.indexOf('__TABLE_PLACEHOLDER__');
+    if (placeholderIdx !== -1) {
+      parsedLines[placeholderIdx] = tableHtml;
+    }
+  }
+  if (inList) parsedLines.push('</ul>');
+  if (inOrderedList) parsedLines.push('</ol>');
+  
+  html = parsedLines.join('\n');
+  
+  // Handle double and single newlines correctly for HTML blocks
+  html = html
+    .replace(/(<\/ul>|<\/ol>|<li>|<\/li>|<ul>|<ol>)\n/g, '$1')
+    .replace(/\n(<\/ul>|<\/ol>|<li>|<\/li>|<ul>|<ol>)/g, '$1')
+    .replace(/\n/g, '<br>');
+    
+  // Place back the code blocks
+  codeBlocks.forEach((codeHtml, idx) => {
+    html = html.replace(`__CODE_BLOCK_PLACEHOLDER_${idx}__`, codeHtml);
+  });
+  
+  return html;
+}
+
+window.copyToClipboard = function(btn) {
+  const code = decodeURIComponent(btn.getAttribute('data-code'));
+  navigator.clipboard.writeText(code).then(() => {
+    const origSvg = btn.innerHTML;
+    // Swap with green checkmark SVG
+    btn.innerHTML = `<svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"/></svg>`;
+    btn.style.color = 'var(--success)';
+    if (typeof Sound !== 'undefined' && Sound.playSuccess) {
+      Sound.playSuccess();
+    }
+    
+    setTimeout(() => {
+      btn.innerHTML = origSvg;
+      btn.style.color = '#a1a1aa';
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy text: ', err);
+  });
+};
+
+// Formats data rows into HTML tables
+function buildTableHtml(rows) {
+  if (rows.length === 0) return '';
+  
+  let html = `<div class="chat-table-wrapper"><table class="chat-table">`;
+  
+  // The first row is the header
+  const headerCols = rows[0];
+  html += `<thead><tr>`;
+  headerCols.forEach(col => {
+    html += `<th>${col}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+  
+  // The subsequent rows are data rows
+  for (let i = 1; i < rows.length; i++) {
+    const rowCols = rows[i];
+    html += `<tr>`;
+    for (let j = 0; j < headerCols.length; j++) {
+      const cellVal = rowCols[j] !== undefined ? rowCols[j] : '';
+      html += `<td>${cellVal}</td>`;
+    }
+    html += `</tr>`;
+  }
+  
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+// Shows a custom pill-shaped toast notification centered at the top of the screen
+function showNotification(message) {
+  let notif = document.getElementById('custom-toast-notification');
+  if (!notif) {
+    notif = document.createElement('div');
+    notif.id = 'custom-toast-notification';
+    document.body.appendChild(notif);
+  }
+  
+  // Apply pill style layout with glassmorphism matching the Focus Badge
+  notif.style.position = 'fixed';
+  notif.style.top = '24px';
+  notif.style.left = '50%';
+  notif.style.transform = 'translateX(-50%) translateY(-20px)';
+  notif.style.opacity = '0';
+  notif.style.background = 'rgba(24, 24, 27, 0.85)';
+  notif.style.backdropFilter = 'blur(12px)';
+  notif.style.webkitBackdropFilter = 'blur(12px)';
+  notif.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+  notif.style.padding = '0.6rem 1.2rem';
+  notif.style.borderRadius = '9999px';
+  notif.style.color = '#ffffff';
+  notif.style.fontSize = '0.8rem';
+  notif.style.fontWeight = '500';
+  notif.style.display = 'flex';
+  notif.style.alignItems = 'center';
+  notif.style.gap = '0.5rem';
+  notif.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)';
+  notif.style.zIndex = '99999';
+  notif.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+  
+  // Custom Focus-like layout contents
+  notif.innerHTML = `
+    <div style="width: 14px; height: 14px; background: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <span style="font-family: var(--font-sans);">${message}</span>
+  `;
+  
+  // Slide down and fade in
+  setTimeout(() => {
+    notif.style.transform = 'translateX(-50%) translateY(0)';
+    notif.style.opacity = '1';
+  }, 10);
+  
+  // Slide back up and fade out
+  setTimeout(() => {
+    notif.style.transform = 'translateX(-50%) translateY(-20px)';
+    notif.style.opacity = '0';
+  }, 2000);
+}
+
+// Copy the full raw message prose to clipboard
+window.copyFullMessage = function(btn) {
+  const text = decodeURIComponent(btn.getAttribute('data-text'));
+  navigator.clipboard.writeText(text).then(() => {
+    showNotification("Copied!");
+    if (typeof Sound !== 'undefined' && Sound.playSuccess) {
+      Sound.playSuccess();
+    }
+  }).catch(err => {
+    console.error('Failed to copy message: ', err);
+  });
+};
+
+
+function stripToolCall(text) {
+  if (!text) return '';
+  let cleaned = text;
+  
+  // Strip completed ```json ... ``` blocks
+  cleaned = cleaned.replace(/```json[\s\S]*?```/g, '');
+  cleaned = cleaned.replace(/```[\s\S]*?```/g, '');
+  
+  // Strip uncompleted/open ```json or ``` blocks from the text
+  const openIdx = cleaned.indexOf('```json');
+  if (openIdx !== -1) {
+    cleaned = cleaned.substring(0, openIdx);
+  }
+  const openIdx2 = cleaned.indexOf('```');
+  if (openIdx2 !== -1) {
+    cleaned = cleaned.substring(0, openIdx2);
+  }
+  
+  // Strip completed raw JSON tool blocks
+  cleaned = cleaned.replace(/\{[^{}]*"tool"[^{}]*\}\s*/g, '');
+  
+  // Strip uncompleted raw JSON tool blocks
+  const rawOpenIdx = cleaned.indexOf('{\n  "tool"');
+  if (rawOpenIdx !== -1) {
+    cleaned = cleaned.substring(0, rawOpenIdx);
+  }
+  const rawOpenIdx2 = cleaned.indexOf('{"tool"');
+  if (rawOpenIdx2 !== -1) {
+    cleaned = cleaned.substring(0, rawOpenIdx2);
+  }
+  
+  return cleaned.trim();
 }
 
 function scrollToBottom(id) {
@@ -3966,7 +4798,7 @@ function setupGitHubPanelBindings() {
   if (refreshBtn) {
     refreshBtn.addEventListener('click', () => {
       Sound.playClick();
-      loadGitHubPanel();
+      wrapWithLoader(() => loadGitHubPanel(), "Refreshing GitHub workspace...");
     });
   }
   
@@ -4449,7 +5281,7 @@ function setupJiraPanelBindings() {
   if (refBtn) {
     refBtn.addEventListener('click', () => {
       Sound.playClick();
-      loadJiraIssues();
+      wrapWithLoader(() => loadJiraIssues(), "Refreshing Jira board...");
     });
   }
   
@@ -4741,10 +5573,9 @@ function updateMcpFilesStatus() {
   const container = el('mcp-files-folder-list');
   if (!container) return;
   const count = container.querySelectorAll('.files-folder-item').length;
-  // Optionally update a small count badge if present
-  const countEl = el('mcp-files-count');
-  if (countEl) {
-    countEl.textContent = `${count} folder(s)`;
+  const statusEl = el('mcp-files-status');
+  if (statusEl) {
+    statusEl.textContent = count > 0 ? `${count} folder(s) configured.` : 'No folders configured yet.';
   }
 }
 
@@ -5001,6 +5832,372 @@ function setupMcpPanelBindings() {
 }
 
 
+// ── FILES SEARCH CONTROLLER AND EVENT BINDINGS ──
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  if (!bytes) return '—';
+  const k = 1024;
+  const dm = 2;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+function getFileName(path) {
+  return path.split('/').pop();
+}
+
+window.closeFileViewer = function() {
+  const modal = el('file-viewer-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+};
+
+async function viewFile(path) {
+  const modal = el('file-viewer-modal');
+  const title = el('file-viewer-title');
+  const pathEl = el('file-viewer-path');
+  const contentEl = el('file-viewer-content');
+  
+  if (!modal || !contentEl) return;
+  
+  title.textContent = 'Loading...';
+  pathEl.textContent = path;
+  contentEl.textContent = 'Loading file contents...';
+  modal.style.display = 'flex';
+  
+  try {
+    const res = await apiFetch(`/api/files/read?path=${encodeURIComponent(path)}`);
+    if (res.ok) {
+      const data = await res.json();
+      title.textContent = getFileName(path);
+      contentEl.textContent = data.content;
+      loadRecentFiles();
+    } else {
+      const err = await res.json();
+      title.textContent = 'Error';
+      contentEl.textContent = `Error reading file: ${err.detail || 'Access denied'}`;
+    }
+  } catch(e) {
+    title.textContent = 'Error';
+    contentEl.textContent = 'Connection error.';
+  }
+}
+
+async function loadRecentFiles() {
+  const container = el('files-recent-list');
+  if (!container) return;
+  
+  const sortBy = el('files-recent-sort')?.value || 'date';
+  
+  try {
+    const res = await apiFetch(`/api/files/recent?sort_by=${sortBy}`);
+    if (res.ok) {
+      const data = await res.json();
+      renderRecentFiles(data.recent);
+    }
+  } catch(e) {
+    console.error("Failed to load recent files:", e);
+  }
+}
+
+function renderRecentFiles(recent) {
+  const container = el('files-recent-list');
+  container.innerHTML = '';
+  
+  if (!recent || recent.length === 0) {
+    container.innerHTML = '<div class="loading-state">No recent files opened.</div>';
+    return;
+  }
+  
+  recent.forEach(file => {
+    const item = document.createElement('div');
+    item.style.padding = '0.5rem 0.75rem';
+    item.style.border = '1px solid var(--border)';
+    item.style.borderRadius = 'var(--radius)';
+    item.style.background = 'var(--bg-app)';
+    item.style.cursor = 'pointer';
+    item.style.display = 'flex';
+    item.style.justifyContent = 'space-between';
+    item.style.alignItems = 'center';
+    item.style.gap = '0.5rem';
+    item.style.transition = 'all 0.15s ease';
+    
+    item.addEventListener('mouseenter', () => {
+      item.style.borderColor = 'var(--primary)';
+      item.style.background = 'rgba(99,102,241,0.03)';
+    });
+    item.addEventListener('mouseleave', () => {
+      item.style.borderColor = 'var(--border)';
+      item.style.background = 'var(--bg-app)';
+    });
+    
+    item.onclick = () => {
+      Sound.playClick();
+      viewFile(file.path);
+    };
+    
+    const fileName = getFileName(file.path);
+    const sizeStr = formatBytes(file.size);
+    
+    item.innerHTML = `
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem;">
+        <strong style="color: var(--text-main); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${fileName}</strong>
+        <span style="font-size: 0.65rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${file.path}</span>
+      </div>
+      <div style="flex-shrink: 0; font-size: 0.65rem; color: var(--text-muted); text-align: right;">
+        <div>${sizeStr}</div>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+async function loadFavoriteFolders() {
+  const container = el('files-favorites-list');
+  if (!container) return;
+  
+  try {
+    const res = await apiFetch('/api/files/favorites');
+    if (res.ok) {
+      const data = await res.json();
+      renderFavoriteFolders(data.favorites);
+    }
+  } catch(e) {
+    console.error("Failed to load favorite folders:", e);
+  }
+}
+
+function renderFavoriteFolders(favs) {
+  const container = el('files-favorites-list');
+  container.innerHTML = '';
+  
+  if (!favs || favs.length === 0) {
+    container.innerHTML = '<div class="loading-state">No favorite folders added.</div>';
+    return;
+  }
+  
+  favs.forEach(fav => {
+    const item = document.createElement('div');
+    item.style.padding = '0.4rem 0.6rem';
+    item.style.border = '1px solid var(--border)';
+    item.style.borderRadius = 'var(--radius)';
+    item.style.background = 'var(--bg-app)';
+    item.style.display = 'flex';
+    item.style.alignItems = 'center';
+    item.style.justifyContent = 'space-between';
+    item.style.gap = '0.5rem';
+    item.style.cursor = 'pointer';
+    
+    item.addEventListener('mouseenter', () => {
+      item.style.borderColor = 'var(--primary)';
+    });
+    item.addEventListener('mouseleave', () => {
+      item.style.borderColor = 'var(--border)';
+    });
+    
+    item.onclick = () => {
+      el('files-search-input').value = fav.path;
+      el('files-search-type').value = 'name';
+      Sound.playClick();
+      searchFiles();
+    };
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'action-link';
+    removeBtn.textContent = 'Remove';
+    removeBtn.style.fontSize = '0.7rem';
+    removeBtn.style.color = 'var(--danger)';
+    removeBtn.onclick = async (e) => {
+      e.stopPropagation();
+      Sound.playClick();
+      if (confirm(`Remove "${fav.path}" from favorites?`)) {
+        try {
+          const res = await apiFetch(`/api/files/favorite?path=${encodeURIComponent(fav.path)}`, {
+            method: 'DELETE'
+          });
+          if (res.ok) {
+            Sound.playSuccess();
+            loadFavoriteFolders();
+          }
+        } catch(err) {
+          console.error(err);
+        }
+      }
+    };
+    
+    const leftWrap = document.createElement('div');
+    leftWrap.style.display = 'flex';
+    leftWrap.style.alignItems = 'center';
+    leftWrap.style.gap = '0.4rem';
+    leftWrap.style.minWidth = '0';
+    leftWrap.style.flex = '1';
+    
+    leftWrap.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="flex-shrink:0;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <span style="font-size: 0.75rem; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${fav.path}</span>
+    `;
+    
+    item.appendChild(leftWrap);
+    item.appendChild(removeBtn);
+    container.appendChild(item);
+  });
+}
+
+async function searchFiles() {
+  const queryInput = el('files-search-input');
+  if (!queryInput) return;
+  const query = queryInput.value.trim();
+  
+  const searchType = el('files-search-type')?.value || 'name';
+  const container = el('files-results-list');
+  const countEl = el('files-result-count');
+  
+  if (!container) return;
+  
+  if (!query) {
+    container.innerHTML = '<div class="loading-state">Enter a search query above to find files.</div>';
+    if (countEl) countEl.textContent = '—';
+    return;
+  }
+  
+  container.innerHTML = '<div class="loading-state">Searching files...</div>';
+  if (countEl) countEl.textContent = 'Searching...';
+  
+  try {
+    const res = await apiFetch(`/api/files/search?query=${encodeURIComponent(query)}&search_type=${searchType}`);
+    if (res.ok) {
+      const data = await res.json();
+      renderSearchResults(data.results);
+    } else {
+      const err = await res.json();
+      container.innerHTML = `<div class="placeholder-text" style="color:var(--danger);">${err.detail || 'Search failed'}</div>`;
+      if (countEl) countEl.textContent = 'Error';
+    }
+  } catch(e) {
+    container.innerHTML = '<div class="placeholder-text" style="color:var(--danger);">Network error during search.</div>';
+    if (countEl) countEl.textContent = 'Error';
+  }
+}
+
+function renderSearchResults(files) {
+  const container = el('files-results-list');
+  const countEl = el('files-result-count');
+  container.innerHTML = '';
+  
+  if (!files || files.length === 0) {
+    container.innerHTML = '<div class="loading-state">No files matched your search.</div>';
+    if (countEl) countEl.textContent = '0 results';
+    return;
+  }
+  
+  if (countEl) countEl.textContent = `${files.length} results`;
+  
+  files.forEach(file => {
+    const item = document.createElement('div');
+    item.style.padding = '0.75rem 1rem';
+    item.style.border = '1px solid var(--border)';
+    item.style.borderRadius = 'var(--radius)';
+    item.style.background = 'var(--bg-app)';
+    item.style.cursor = 'pointer';
+    item.style.display = 'flex';
+    item.style.justifyContent = 'space-between';
+    item.style.alignItems = 'center';
+    item.style.gap = '1rem';
+    item.style.transition = 'all 0.15s ease';
+    
+    item.addEventListener('mouseenter', () => {
+      item.style.borderColor = 'var(--primary)';
+      item.style.background = 'rgba(99,102,241,0.03)';
+    });
+    item.addEventListener('mouseleave', () => {
+      item.style.borderColor = 'var(--border)';
+      item.style.background = 'var(--bg-app)';
+    });
+    
+    item.onclick = () => {
+      Sound.playClick();
+      viewFile(file.path);
+    };
+    
+    const fileName = getFileName(file.path);
+    const dateStr = file.modified ? new Date(file.modified * 1000).toLocaleString() : '—';
+    const sizeStr = formatBytes(file.size);
+    
+    item.innerHTML = `
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem;">
+        <strong style="color: var(--text-main); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${fileName}</strong>
+        <span style="font-size: 0.7rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${file.path}</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; flex-shrink: 0; font-size: 0.7rem; color: var(--text-muted);">
+        <span>${sizeStr}</span>
+        <span>${dateStr}</span>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function loadFilesPanel() {
+  loadRecentFiles();
+  loadFavoriteFolders();
+}
+
+function setupFilesPanelBindings() {
+  const searchBtn = el('files-search-btn');
+  const searchInput = el('files-search-input');
+  const recentSort = el('files-recent-sort');
+  const addFavBtn = el('files-add-fav-btn');
+  
+  if (searchBtn) {
+    searchBtn.addEventListener('click', () => {
+      Sound.playClick();
+      searchFiles();
+    });
+  }
+  
+  if (searchInput) {
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        Sound.playClick();
+        searchFiles();
+      }
+    });
+  }
+  
+  if (recentSort) {
+    recentSort.addEventListener('change', () => {
+      Sound.playClick();
+      loadRecentFiles();
+    });
+  }
+  
+  if (addFavBtn) {
+    addFavBtn.addEventListener('click', async () => {
+      Sound.playClick();
+      const folder = prompt("Enter folder path to add to favorites:");
+      if (!folder) return;
+      try {
+        const res = await apiFetch('/api/files/favorite', {
+          method: 'POST',
+          body: { path: folder }
+        });
+        if (res.ok) {
+          Sound.playSuccess();
+          loadFavoriteFolders();
+        } else {
+          const err = await res.json();
+          alert(err.detail || "Failed to add favorite folder.");
+        }
+      } catch(e) {
+        alert("Failed to add favorite folder due to network error.");
+      }
+    });
+  }
+}
+
+
 // ── DYNAMIC SIDEBAR ACTIVE MCPS DISPLAY ──
 async function updateSidebarActiveMcps() {
   const list = el('sidebar-active-mcps-list');
@@ -5141,7 +6338,7 @@ function setupLogsPanelBindings() {
   if (refreshBtn) {
     refreshBtn.addEventListener('click', () => {
       Sound.playClick();
-      loadLogsPanel();
+      wrapWithLoader(() => loadLogsPanel(), "Refreshing System logs...");
     });
   }
 }

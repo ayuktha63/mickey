@@ -8,6 +8,8 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/app/data
+      - .:/app
+      - /Users:/Users
     environment:
       - DATABASE_DIR=/app/data
       - PORT=8000

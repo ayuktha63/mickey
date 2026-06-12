@@ -16,7 +16,23 @@ def get_db_setting(key: str, default: str = "", mode: str = "work") -> str:
         db.close()
 
 def get_ollama_url(mode: str = "work") -> str:
-    return get_db_setting("ollama_url", "http://localhost:11434", mode=mode).rstrip("/")
+    import os
+    env_url = os.getenv("OLLAMA_URL")
+    if env_url:
+        url = env_url.rstrip("/")
+    else:
+        url = get_db_setting("ollama_url", "", mode=mode).strip().rstrip("/")
+        if not url:
+            if os.path.exists("/.dockerenv"):
+                return "http://host.docker.internal:11434"
+            return "http://localhost:11434"
+    
+    # If we are inside Docker and the url points to localhost, map it to host.docker.internal
+    if os.path.exists("/.dockerenv"):
+        if "localhost" in url or "127.0.0.1" in url:
+            url = url.replace("localhost", "host.docker.internal").replace("127.0.0.1", "host.docker.internal")
+            
+    return url
 
 async def get_available_models(mode: str = "work") -> List[str]:
     url = f"{get_ollama_url(mode)}/api/tags"
@@ -72,6 +88,10 @@ Available Tools:
     Args: {"city": "str"}
 15. `web_search` - Query web search snippets.
     Args: {"query": "str"}
+16. `jira_mcp` - Query Jira projects, assigned issues, create tickets, transition tickets, and comment using Jira MCP.
+    Args: {"method": "list_projects|list_assigned_issues|create_issue|transition_issue|add_comment", "project_key": "str (optional)", "summary": "str (optional)", "description": "str (optional)", "issue_key": "str (optional)", "transition_id": "str (optional)", "comment": "str (optional)", "jql": "str (optional)"}
+17. `files_mcp` - Search, browse and read local files from whitelisted search folders.
+    Args: {"method": "search_files|read_file", "query": "str (optional)", "search_type": "name|extension|content (optional)", "path": "str (optional)"}
 
 IMPORTANT: Always answer using clean markdown. Keep responses concise and focused on productivity.
 Current Date/Time context: {current_time}
@@ -179,6 +199,78 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], mode: str = "work")
             )
             return {"github_result": res}
 
+        elif tool_name == "jira_mcp":
+            from app.services.jira_service import JiraService
+            service = JiraService(mode=mode)
+            method = args.get("method")
+            if method == "list_projects":
+                res = await service.list_projects()
+                return {"projects": res}
+            elif method == "list_assigned_issues":
+                res = await service.list_assigned_issues(args.get("jql"))
+                return {"issues": res}
+            elif method == "create_issue":
+                res = await service.create_issue(
+                    project_key=args.get("project_key"),
+                    summary=args.get("summary"),
+                    description=args.get("description", ""),
+                    issue_type=args.get("issue_type", "Task")
+                )
+                return {"created_issue": res}
+            elif method == "transition_issue":
+                res = await service.transition_issue(
+                    issue_key=args.get("issue_key"),
+                    transition_id=args.get("transition_id")
+                )
+                return {"transition_result": res}
+            elif method == "add_comment":
+                res = await service.add_comment(
+                    issue_key=args.get("issue_key"),
+                    comment=args.get("comment")
+                )
+                return {"comment_result": res}
+            else:
+                return {"error": f"Invalid Jira method: {method}"}
+
+        elif tool_name == "files_mcp":
+            row = db.query(Setting).filter(Setting.key == "accessible_folders").first()
+            import json
+            whitelist = []
+            if row and row.value:
+                try:
+                    whitelist = json.loads(row.value)
+                except Exception:
+                    whitelist = []
+            if not whitelist:
+                from pathlib import Path
+                whitelist = [str(Path.home())]
+            from app.services.files_service import FilesService
+            from pathlib import Path
+            service = FilesService(db, [Path(p) for p in whitelist])
+            
+            method = args.get("method")
+            if method == "search_files":
+                query = args.get("query", "")
+                stype = args.get("search_type", "name")
+                if stype == "name":
+                    results = service.search_by_name(query)
+                elif stype == "extension":
+                    results = service.search_by_extension(query)
+                elif stype == "content":
+                    results = service.search_by_content(query)
+                else:
+                    return {"error": f"Invalid search type: {stype}"}
+                return {"results": results}
+            elif method == "read_file":
+                path = args.get("path")
+                if not path:
+                    return {"error": "Path required for read_file"}
+                content = service.read_file(path)
+                service.add_recent(path)
+                return {"content": content}
+            else:
+                return {"error": f"Invalid files method: {method}"}
+
         elif tool_name == "calculate":
             import re
             expr = args.get("expr", "")
@@ -243,6 +335,57 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], mode: str = "work")
     finally:
         db.close()
 
+def extract_tool_calls(text: str) -> List[Dict[str, Any]]:
+    tool_calls = []
+    in_string = False
+    escape_next = False
+    brace_depth = 0
+    current_json = []
+    
+    for char in text:
+        if escape_next:
+            escape_next = False
+            if brace_depth > 0:
+                current_json.append(char)
+            continue
+            
+        if char == '\\':
+            escape_next = True
+            if brace_depth > 0:
+                current_json.append(char)
+            continue
+            
+        if char == '"':
+            in_string = not in_string
+            if brace_depth > 0:
+                current_json.append(char)
+            continue
+            
+        if not in_string:
+            if char == '{':
+                brace_depth += 1
+                current_json.append(char)
+            elif char == '}':
+                brace_depth -= 1
+                if brace_depth >= 0:
+                    current_json.append(char)
+                if brace_depth == 0:
+                    json_str = "".join(current_json).strip()
+                    current_json = []
+                    try:
+                        data = json.loads(json_str)
+                        if isinstance(data, dict) and "tool" in data:
+                            tool_calls.append(data)
+                    except Exception:
+                        pass
+            else:
+                if brace_depth > 0:
+                    current_json.append(char)
+        else:
+            if brace_depth > 0:
+                current_json.append(char)
+                
+    return tool_calls
 async def generate_chat_stream(messages: List[Dict[str, str]], model_name: Optional[str] = None, mode: str = "work") -> AsyncGenerator[str, None]:
     import datetime
     
@@ -273,12 +416,7 @@ async def generate_chat_stream(messages: List[Dict[str, str]], model_name: Optio
         "stream": True
     }
     
-    # First, run a check to see if the model outputs a tool call JSON. We read the first chunk.
-    # To keep it simple and high-performance, we can stream the response directly.
-    # If a tool call pattern is detected in the stream, we execute the tool and append the result.
     tool_buffer = ""
-    is_json = False
-    json_detected = False
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
             async with client.stream("POST", url, json=payload) as response:
@@ -292,47 +430,45 @@ async def generate_chat_stream(messages: List[Dict[str, str]], model_name: Optio
                     try:
                         chunk_data = json.loads(chunk)
                         token = chunk_data.get("message", {}).get("content", "")
-                        
-                        # Detect tool call JSON block
-                        if not json_detected:
-                            tool_buffer += token
-                            if tool_buffer.strip().startswith("```json") or tool_buffer.strip().startswith("{"):
-                                # Keep buffering
-                                if "}" in tool_buffer:
-                                    json_detected = True
-                                    is_json = True
-                                continue
-                            else:
-                                # Normal prose, output the buffered content and continue
-                                yield tool_buffer
-                                tool_buffer = ""
-                                json_detected = True
-                        
-                        if is_json:
-                            tool_buffer += token
-                        else:
-                            yield token
+                        tool_buffer += token
+                        yield token
                     except Exception as e:
                         logger.error(f"Error parsing Ollama chunk: {e}")
                         
-            if is_json:
-                # Parse the tool JSON
+            # After stream completes, check if there are any tool calls in the output
+            try:
+                tool_calls = extract_tool_calls(tool_buffer)
+            except Exception as e:
+                logger.error(f"Error extracting tool calls: {e}")
+                tool_calls = []
+                
+            if tool_calls:
                 try:
-                    # Strip markdown code blocks if any
-                    clean_json = tool_buffer.replace("```json", "").replace("```", "").strip()
-                    call_data = json.loads(clean_json)
-                    tool_name = call_data.get("tool")
-                    args = call_data.get("args", {})
+                    tool_results = []
+                    for call_data in tool_calls:
+                        tool_name = call_data.get("tool")
+                        args = call_data.get("args", {})
+                        
+                        # Yield structured efforts delimiter for parsing in frontend
+                        yield f"\n__efforts_start__:{json.dumps({'tool': tool_name, 'args': args})}\n"
+                        tool_result = await execute_tool(tool_name, args, mode=mode)
+                        yield f"\n__efforts_end__:{json.dumps(tool_result)}\n"
+                        
+                        tool_results.append((call_data, tool_result))
                     
-                    # Yield structured efforts delimiter for parsing in frontend
-                    yield f"\n__efforts_start__:{json.dumps({'tool': tool_name, 'args': args})}\n"
-                    tool_result = await execute_tool(tool_name, args, mode=mode)
-                    yield f"\n__efforts_end__:{json.dumps(tool_result)}\n"
+                    # Construct query for final answer from Ollama
+                    assistant_msg_content = tool_buffer
                     
-                    # Append tool result and query Ollama again for final answer
+                    results_summary = []
+                    for call_data, tool_result in tool_results:
+                        tool_name = call_data.get("tool")
+                        results_summary.append(f"Tool '{tool_name}' execution result: {json.dumps(tool_result)}")
+                    
+                    user_msg_content = "\n".join(results_summary) + "\nProvide the final reply to my original message based on these results."
+                    
                     tool_messages = chat_messages + [
-                        {"role": "assistant", "content": clean_json},
-                        {"role": "user", "content": f"Tool execution result: {json.dumps(tool_result)}. Provide the final reply to my original message based on this result."}
+                        {"role": "assistant", "content": assistant_msg_content},
+                        {"role": "user", "content": user_msg_content}
                     ]
                     
                     final_payload = {
@@ -348,9 +484,11 @@ async def generate_chat_stream(messages: List[Dict[str, str]], model_name: Optio
                             final_data = json.loads(chunk)
                             yield final_data.get("message", {}).get("content", "")
                 except Exception as tool_err:
-                    logger.error(f"Tool parse error: {tool_err}")
+                    logger.error(f"Tool execution error: {tool_err}")
                     yield f"\n\nFailed to execute tool. Raw response: {tool_buffer}"
                 
     except Exception as e:
         logger.exception("Error in chat stream generation")
         yield f"\nConnection to local Ollama failed. Please ensure Ollama is running at {get_ollama_url(mode)} and you have loaded the model '{model_name}'."
+
+

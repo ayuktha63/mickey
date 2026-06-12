@@ -1578,3 +1578,1207 @@
 2026-06-12 11:14:29,226 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
 2026-06-12 11:14:29,282 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
 2026-06-12 11:14:29,705 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 12:05:53,474 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 12:05:55,770 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:06:02,225 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:06:02,248 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=False, has_mcp=False
+2026-06-12 12:06:02,249 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=False
+2026-06-12 12:06:05,076 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:06:05,986 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:07:23,461 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 12:07:47,924 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:07:53,512 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:07:53,522 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=False, has_mcp=False
+2026-06-12 12:07:53,522 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=False
+2026-06-12 12:08:00,552 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:08:01,942 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:08:53,144 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 12:44:56,636 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:45:02,300 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:45:02,318 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=False, has_mcp=False
+2026-06-12 12:45:02,318 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=False
+2026-06-12 12:45:11,596 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:45:13,616 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:45:44,902 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:45:45,413 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:45:57,153 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:45:57,157 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:45:57,223 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:45:57,225 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:45:57,763 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 12:45:57,765 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 12:45:57,766 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 12:45:57,767 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 12:45:57,767 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 12:45:57,767 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 12:46:02,293 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:46:03,219 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:46:43,475 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:46:43,479 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=False, has_mcp=False
+2026-06-12 12:46:43,479 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=False
+2026-06-12 12:46:43,488 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:46:43,495 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=False, has_mcp=False
+2026-06-12 12:46:43,495 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=False
+2026-06-12 12:49:25,050 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 12:49:36,095 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:49:36,746 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:49:49,175 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:49:55,247 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:49:55,264 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:49:55,265 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:49:55,364 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:49:55,485 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:49:55,491 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:49:55,492 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:49:55,729 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 12:49:55,731 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 12:49:55,732 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=False
+2026-06-12 12:49:56,011 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 12:49:56,015 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 12:49:56,056 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=False
+2026-06-12 12:49:59,307 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:49:59,330 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:49:59,336 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:49:59,336 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:49:59,748 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 12:49:59,750 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 12:49:59,751 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=False
+2026-06-12 12:50:08,684 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 12:50:12,278 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:50:12,901 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:50:16,589 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:50:19,104 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:51:37,289 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 12:51:43,985 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:51:44,758 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:51:49,033 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:51:49,034 - app.services.github - INFO - GitHub query: method=view_commits, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:51:49,035 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:51:49,035 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:51:49,410 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 12:51:49,413 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 12:51:49,903 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:52:19,640 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 12:52:22,778 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:52:23,311 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:52:24,064 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:52:24,064 - app.services.github - INFO - GitHub query: method=read_issues, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:52:24,065 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:52:24,066 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:52:24,785 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:52:24,787 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:52:24,789 - app.services.github - INFO - Auto-resolved missing repo argument to first available repo: 'ayuktha63/mickey'
+2026-06-12 12:52:25,503 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/mickey/issues?state=open&per_page=15 "HTTP/1.1 200 OK"
+2026-06-12 12:52:25,505 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/mickey/issues?state=open&per_page=15 -> status 200
+2026-06-12 12:52:26,047 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:52:49,972 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:52:51,024 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:52:51,032 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:52:51,038 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:52:51,713 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:52:51,716 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:52:51,718 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:52:58,675 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:52:58,706 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:52:58,706 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:52:59,824 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:52:59,834 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:52:59,840 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:53:00,428 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:53:00,430 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:53:00,432 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:53:00,476 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:53:00,479 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:53:00,482 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:53:22,960 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:53:22,967 - app.services.ollama - ERROR - Error in chat stream generation
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/services/ollama.py", line 415, in generate_chat_stream
+    async with client.stream("POST", url, json=payload) as response:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1583, in stream
+    response = await self.send(
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2026-06-12 12:53:44,053 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:53:45,195 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:53:45,200 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:53:45,206 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:53:45,958 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:53:45,963 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:53:45,967 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:53:46,578 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:53:46,586 - app.services.ollama - ERROR - Error in chat stream generation
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/services/ollama.py", line 415, in generate_chat_stream
+    async with client.stream("POST", url, json=payload) as response:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1583, in stream
+    response = await self.send(
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2026-06-12 12:53:50,667 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:53:50,675 - app.services.ollama - ERROR - Error in chat stream generation
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/services/ollama.py", line 415, in generate_chat_stream
+    async with client.stream("POST", url, json=payload) as response:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1583, in stream
+    response = await self.send(
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2026-06-12 12:53:55,201 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:53:55,209 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:53:55,210 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:53:55,844 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:53:55,848 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:53:55,850 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:53:56,329 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:53:56,348 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:53:56,352 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:53:56,353 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:53:57,002 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:53:57,005 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:53:57,007 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:54:01,117 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:54:03,173 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:54:04,417 - app.services.ollama - ERROR - Error executing tool
+Traceback (most recent call last):
+  File "/app/app/services/jira_service.py", line 192, in list_assigned_issues
+    data = await self._request(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/services/jira_service.py", line 72, in _request
+    self._check_config()
+  File "/app/app/services/jira_service.py", line 55, in _check_config
+    raise HTTPException(status_code=404, detail="Jira configuration not found for active mode. Please configure Jira under the MCP settings first.")
+fastapi.exceptions.HTTPException: 404: Jira configuration not found for active mode. Please configure Jira under the MCP settings first.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/app/app/services/jira_service.py", line 199, in list_assigned_issues
+    data = await self._request(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/services/jira_service.py", line 72, in _request
+    self._check_config()
+  File "/app/app/services/jira_service.py", line 55, in _check_config
+    raise HTTPException(status_code=404, detail="Jira configuration not found for active mode. Please configure Jira under the MCP settings first.")
+fastapi.exceptions.HTTPException: 404: Jira configuration not found for active mode. Please configure Jira under the MCP settings first.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/app/app/services/ollama.py", line 203, in execute_tool
+    res = await service.list_assigned_issues(args.get("jql"))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/services/jira_service.py", line 205, in list_assigned_issues
+    raise he
+  File "/app/app/services/jira_service.py", line 183, in list_assigned_issues
+    data = await self._request(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/services/jira_service.py", line 72, in _request
+    self._check_config()
+  File "/app/app/services/jira_service.py", line 55, in _check_config
+    raise HTTPException(status_code=404, detail="Jira configuration not found for active mode. Please configure Jira under the MCP settings first.")
+fastapi.exceptions.HTTPException: 404: Jira configuration not found for active mode. Please configure Jira under the MCP settings first.
+2026-06-12 12:54:06,405 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 12:54:15,791 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:54:15,800 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:54:15,804 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:54:16,330 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:54:17,370 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:54:17,377 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:54:17,378 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:54:17,379 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:54:17,384 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:54:17,390 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:54:18,017 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:54:18,019 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:54:18,020 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:54:42,988 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:54:44,105 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:54:44,111 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:54:44,116 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:54:44,800 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:54:44,804 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:54:44,805 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:54:52,783 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:54:52,786 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:54:52,786 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:54:52,910 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:54:52,949 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:54:52,954 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:54:52,954 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:54:53,472 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:54:53,474 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:54:53,476 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:54:53,580 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:54:53,583 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:54:53,585 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:54:56,985 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:54:56,991 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:54:56,997 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:54:57,221 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:54:57,228 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:54:57,228 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:54:57,685 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:54:57,688 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:54:57,690 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:54:57,868 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:54:57,872 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:54:57,873 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:54:59,613 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:54:59,621 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:54:59,625 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:55:00,264 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:55:00,267 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:55:00,269 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:55:00,946 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:55:02,214 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:55:02,221 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:55:02,226 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:55:02,919 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:55:02,923 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:55:02,925 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:55:02,985 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:55:02,991 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:55:02,992 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:55:03,613 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:55:03,616 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:55:03,618 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:55:06,137 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:55:06,146 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:55:06,152 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:55:06,776 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:55:06,778 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:55:06,780 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:55:07,624 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:55:07,631 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:55:07,632 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:55:08,256 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:55:08,259 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:55:08,261 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:55:08,906 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:55:08,929 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:55:08,933 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:55:08,934 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:55:09,529 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:55:09,532 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:55:09,535 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:55:11,377 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:55:11,387 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:55:11,392 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:55:12,019 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:55:12,021 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:55:12,022 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:55:17,312 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:55:17,318 - app.services.ollama - ERROR - Error in chat stream generation
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/services/ollama.py", line 415, in generate_chat_stream
+    async with client.stream("POST", url, json=payload) as response:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1583, in stream
+    response = await self.send(
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2026-06-12 12:55:37,575 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:55:38,666 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:55:38,676 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:55:38,680 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:55:39,334 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:55:39,337 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:55:39,340 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:55:56,380 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:55:56,389 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:55:56,394 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:55:57,098 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:55:57,100 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:55:57,102 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:56:07,145 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:56:07,150 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:56:07,150 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:56:07,248 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:56:07,273 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:56:07,277 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:56:07,277 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:56:07,809 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:56:07,813 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:56:07,816 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:56:07,892 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:56:07,894 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:56:07,897 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:56:12,883 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:56:12,893 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:56:12,897 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:56:13,520 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:56:13,523 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:56:13,525 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:56:16,466 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:56:17,534 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:56:17,542 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:56:17,546 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:56:18,193 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:56:18,196 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:56:18,197 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:56:53,016 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:56:54,581 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:56:54,591 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:56:54,595 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:56:55,283 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:56:55,286 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:56:55,289 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:57:06,755 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:57:06,762 - app.services.ollama - ERROR - Error in chat stream generation
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/services/ollama.py", line 415, in generate_chat_stream
+    async with client.stream("POST", url, json=payload) as response:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1583, in stream
+    response = await self.send(
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2026-06-12 12:57:12,749 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:57:12,757 - app.services.ollama - ERROR - Error in chat stream generation
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/services/ollama.py", line 415, in generate_chat_stream
+    async with client.stream("POST", url, json=payload) as response:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1583, in stream
+    response = await self.send(
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2026-06-12 12:57:37,050 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:57:38,661 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:57:41,686 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:57:41,691 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:57:41,695 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:57:42,351 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:57:42,353 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:57:42,354 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:57:48,456 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:57:49,554 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:57:49,558 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:57:49,565 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:57:49,618 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:57:50,707 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:57:50,711 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:57:50,715 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:57:51,326 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:57:51,328 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:57:51,331 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:57:51,897 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:57:51,900 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:57:51,902 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:57:54,293 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:57:54,300 - app.services.ollama - ERROR - Error in chat stream generation
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/services/ollama.py", line 415, in generate_chat_stream
+    async with client.stream("POST", url, json=payload) as response:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1583, in stream
+    response = await self.send(
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2026-06-12 12:58:04,189 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:58:05,408 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:58:05,416 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:58:05,420 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:58:06,129 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:58:06,132 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:58:06,134 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:58:14,555 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:58:14,560 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:58:14,560 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:58:14,565 - app.services.ollama - WARNING - Error fetching Ollama models: 
+2026-06-12 12:58:14,652 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:58:14,684 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 12:58:14,690 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 12:58:14,691 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 12:58:15,261 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:58:15,264 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:58:15,266 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:58:15,292 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:58:15,297 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:58:15,298 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 12:58:22,814 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:58:22,821 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:58:22,826 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:58:22,832 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:58:23,076 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:58:24,304 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:58:24,309 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:58:24,312 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:58:24,312 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:58:24,316 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:58:24,321 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:58:24,975 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:58:24,978 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:58:24,979 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:59:04,312 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:59:05,625 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:59:05,631 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:59:05,637 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:59:06,354 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:59:06,358 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:59:06,359 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:59:21,583 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:59:22,654 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:59:22,662 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:59:22,667 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:59:23,405 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:59:23,407 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:59:23,408 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:59:47,133 - app.services.ollama - WARNING - Error fetching Ollama models: All connection attempts failed
+2026-06-12 12:59:48,149 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:59:48,156 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:59:48,163 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:59:48,788 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:59:48,791 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:59:48,793 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 12:59:50,256 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 12:59:55,330 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 12:59:56,389 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 12:59:56,400 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 12:59:56,408 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 12:59:57,138 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 12:59:57,141 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 12:59:57,143 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 13:00:01,410 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:00:03,034 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 13:00:06,560 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 13:00:07,563 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 13:00:13,510 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 13:00:34,849 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:00:38,596 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 13:00:44,331 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 13:00:45,472 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 13:00:48,282 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 13:01:06,244 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 13:01:09,959 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 13:01:45,398 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:01:50,561 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 13:01:50,570 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 13:01:50,571 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 13:01:50,663 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:01:50,696 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 13:01:50,701 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 13:01:50,702 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 13:01:51,303 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:01:51,307 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:01:51,310 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 13:01:51,312 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:01:51,312 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:01:51,313 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 13:02:01,555 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 13:02:01,561 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 13:02:01,569 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:02:01,588 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:02:01,636 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:02:02,661 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 13:02:02,668 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 13:02:02,671 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:02:03,300 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:02:03,301 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:02:03,301 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:02:03,302 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:02:03,303 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 13:02:03,303 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 13:02:08,022 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:02:12,195 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 13:02:17,840 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 13:02:18,967 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 13:02:23,281 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 13:03:02,901 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 13:03:02,909 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:03:03,724 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:03:03,727 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:03:03,729 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 13:03:03,737 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=view_repository, mode=personal
+2026-06-12 13:03:03,741 - app.services.github - INFO - GitHub query: method=view_repository, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:03:03,751 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=read_issues, mode=personal
+2026-06-12 13:03:03,762 - app.services.github - INFO - GitHub query: method=read_issues, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:03:04,334 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/mickey/issues?state=open&per_page=15 "HTTP/1.1 200 OK"
+2026-06-12 13:03:04,336 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/mickey/issues?state=open&per_page=15 -> status 200
+2026-06-12 13:03:04,337 - app.api.routes - INFO - Local GitHub MCP request completed: tool=read_issues, mode=personal, success=True
+2026-06-12 13:03:04,478 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/mickey "HTTP/1.1 200 OK"
+2026-06-12 13:03:04,480 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/mickey -> status 200
+2026-06-12 13:03:04,481 - app.api.routes - INFO - Local GitHub MCP request completed: tool=view_repository, mode=personal, success=True
+2026-06-12 13:03:36,887 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:03:40,850 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 13:03:42,576 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:03:43,190 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:03:43,193 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:03:43,197 - app.services.github - INFO - GitHub query: method=view_commits, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:03:43,199 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:03:43,913 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:03:43,916 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:03:43,918 - app.services.github - INFO - Auto-resolved missing repo argument to first available repo: 'ayuktha63/mickey'
+2026-06-12 13:03:44,504 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/mickey/commits?per_page=15 "HTTP/1.1 200 OK"
+2026-06-12 13:03:44,506 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/mickey/commits?per_page=15 -> status 200
+2026-06-12 13:03:49,394 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 13:03:54,227 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:03:54,262 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 13:03:54,266 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:03:54,902 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:03:54,904 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:03:54,906 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 13:03:57,944 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:04:01,476 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 13:04:08,767 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:04:09,568 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:04:09,570 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:04:09,576 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:04:10,287 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:04:10,290 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:04:14,110 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 13:05:02,008 - app.services.ollama - WARNING - Error fetching Ollama models: 
+2026-06-12 13:05:02,010 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 13:05:02,015 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 13:05:02,015 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 13:05:02,080 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:05:02,102 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 13:05:02,105 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 13:05:02,106 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 13:05:02,631 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:05:02,634 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:05:02,636 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 13:05:02,788 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:05:02,790 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:05:02,792 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 13:05:10,735 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 13:05:10,739 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 13:05:10,740 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 13:05:11,477 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:05:11,480 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:05:11,482 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 13:05:29,260 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 13:05:29,264 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 13:05:29,273 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 13:05:29,958 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 13:05:29,961 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 13:05:29,963 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 17:44:35,097 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 17:44:35,115 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 17:44:36,220 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 17:44:36,224 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 17:44:36,225 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 17:45:31,342 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 17:45:36,898 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 17:45:36,903 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 17:45:36,918 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 17:45:36,922 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 17:45:37,681 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 17:45:37,685 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 17:45:37,762 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 17:45:37,764 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 17:45:37,767 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 17:45:37,768 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 17:46:14,376 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 17:46:14,385 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 17:46:15,174 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 17:46:15,177 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 17:46:15,179 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 17:46:15,186 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=view_repository, mode=personal
+2026-06-12 17:46:15,190 - app.services.github - INFO - GitHub query: method=view_repository, mode=personal, has_token=True, has_mcp=False
+2026-06-12 17:46:15,195 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=read_issues, mode=personal
+2026-06-12 17:46:15,200 - app.services.github - INFO - GitHub query: method=read_issues, mode=personal, has_token=True, has_mcp=False
+2026-06-12 17:46:15,727 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/mickey/issues?state=open&per_page=15 "HTTP/1.1 200 OK"
+2026-06-12 17:46:15,729 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/mickey/issues?state=open&per_page=15 -> status 200
+2026-06-12 17:46:15,729 - app.api.routes - INFO - Local GitHub MCP request completed: tool=read_issues, mode=personal, success=True
+2026-06-12 17:46:15,731 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/mickey "HTTP/1.1 200 OK"
+2026-06-12 17:46:15,732 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/mickey -> status 200
+2026-06-12 17:46:15,734 - app.api.routes - INFO - Local GitHub MCP request completed: tool=view_repository, mode=personal, success=True
+2026-06-12 17:46:17,575 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=view_repository, mode=personal
+2026-06-12 17:46:17,582 - app.services.github - INFO - GitHub query: method=view_repository, mode=personal, has_token=True, has_mcp=False
+2026-06-12 17:46:17,586 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=read_issues, mode=personal
+2026-06-12 17:46:17,590 - app.services.github - INFO - GitHub query: method=read_issues, mode=personal, has_token=True, has_mcp=False
+2026-06-12 17:46:18,243 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/Sample-project-interns "HTTP/1.1 200 OK"
+2026-06-12 17:46:18,245 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/Sample-project-interns/issues?state=open&per_page=15 "HTTP/1.1 200 OK"
+2026-06-12 17:46:18,247 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/Sample-project-interns -> status 200
+2026-06-12 17:46:18,248 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/Sample-project-interns/issues?state=open&per_page=15 -> status 200
+2026-06-12 17:46:18,249 - app.api.routes - INFO - Local GitHub MCP request completed: tool=view_repository, mode=personal, success=True
+2026-06-12 17:46:18,249 - app.api.routes - INFO - Local GitHub MCP request completed: tool=read_issues, mode=personal, success=True
+2026-06-12 17:46:18,509 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=view_commits, mode=personal
+2026-06-12 17:46:18,516 - app.services.github - INFO - GitHub query: method=view_commits, mode=personal, has_token=True, has_mcp=False
+2026-06-12 17:46:19,370 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/Sample-project-interns/commits?per_page=15 "HTTP/1.1 200 OK"
+2026-06-12 17:46:19,373 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/Sample-project-interns/commits?per_page=15 -> status 200
+2026-06-12 17:46:19,375 - app.api.routes - INFO - Local GitHub MCP request completed: tool=view_commits, mode=personal, success=True
+2026-06-12 17:48:12,792 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 17:48:17,070 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 17:48:25,217 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 17:49:05,248 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 17:49:09,146 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 17:49:29,608 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 18:18:39,993 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 18:18:43,888 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 18:19:21,173 - httpx - INFO - HTTP Request: POST http://host.docker.internal:11434/api/chat "HTTP/1.1 200 OK"
+2026-06-12 18:19:21,176 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 18:19:21,179 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 18:19:21,184 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 18:19:21,184 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 18:19:21,198 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:19:21,203 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:19:21,225 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:19:21,229 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:19:21,235 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 18:19:21,248 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:19:21,254 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:19:21,970 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:19:21,973 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:19:21,974 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:19:22,087 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:19:22,090 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:19:22,092 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:19:22,094 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:19:22,095 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:19:22,096 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 18:19:22,131 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:19:22,133 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:19:22,134 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:19:23,452 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=work
+2026-06-12 18:19:23,457 - app.services.github - INFO - Using GitHub token from personal mode as fallback.
+2026-06-12 18:19:23,458 - app.services.github - INFO - GitHub query: method=list_repositories, mode=work, has_token=True, has_mcp=False
+2026-06-12 18:19:23,471 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 18:19:24,072 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:19:24,076 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:19:24,078 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=work, success=True
+2026-06-12 18:19:29,101 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:19:29,106 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:19:29,121 - httpx - INFO - HTTP Request: GET http://host.docker.internal:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 18:19:30,011 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:19:30,013 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:19:30,015 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:27:59,679 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:27:59,684 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:28:00,474 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:28:00,477 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:28:00,479 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:28:13,717 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:28:13,720 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:28:14,403 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:28:14,406 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:28:14,407 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:28:43,982 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:28:43,988 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:28:44,892 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:28:44,895 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:28:44,897 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:30:17,759 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:30:17,764 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:30:18,521 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:30:18,524 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:30:18,526 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:31:11,964 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:31:11,967 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:31:12,742 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:31:12,745 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:31:12,747 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:35:15,378 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:35:15,388 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:35:16,188 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:35:16,191 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:35:16,193 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:36:11,310 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:36:11,314 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:36:21,326 - app.services.github - ERROR - Failed to execute GitHub REST API call
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/services/github.py", line 143, in make_github_request
+    resp = await client.get(url, headers=headers)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1768, in get
+    return await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectTimeout
+2026-06-12 18:36:21,335 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 18:37:16,963 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:37:16,969 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:37:26,980 - app.services.github - ERROR - Failed to execute GitHub REST API call
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/services/github.py", line 143, in make_github_request
+    resp = await client.get(url, headers=headers)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1768, in get
+    return await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectTimeout
+2026-06-12 18:37:26,987 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 18:38:11,304 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:38:11,307 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:38:17,091 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:38:17,095 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:38:17,097 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 18:39:18,474 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 18:39:18,480 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 18:39:20,032 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 18:39:20,035 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 18:39:20,037 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True

@@ -338,7 +338,6 @@ def search_files(query: str, search_type: str = "name", ext: str = None, file_ty
         except Exception:
             whitelist = []
     if not whitelist:
-        from pathlib import Path
         whitelist = [str(Path.home())]
     from app.services.files_service import FilesService
     service = FilesService(db, [Path(p) for p in whitelist])
@@ -408,7 +407,6 @@ def read_file(path: str, db: Session = Depends(get_db)):
         except Exception:
             whitelist = []
     if not whitelist:
-        from pathlib import Path
         whitelist = [str(Path.home())]
     from app.services.files_service import FilesService
     service = FilesService(db, [Path(p) for p in whitelist])
@@ -434,7 +432,6 @@ def file_metadata(path: str, db: Session = Depends(get_db)):
         except Exception:
             whitelist = []
     if not whitelist:
-        from pathlib import Path
         whitelist = [str(Path.home())]
     from app.services.files_service import FilesService
     service = FilesService(db, [Path(p) for p in whitelist])

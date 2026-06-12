@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def get_github_credentials(mode: str = "work") -> tuple[str, str]:
     """
     Retrieve GitHub Personal Access Token (PAT) and custom MCP URL for the selected mode (Work vs Personal).
-    Supports falling back to environment variables if settings rows do not exist.
+    Supports falling back to environment variables and cross-mode databases if settings rows do not exist.
     """
     import os
     db = get_db_for_mode(mode)
@@ -27,15 +27,42 @@ def get_github_credentials(mode: str = "work") -> tuple[str, str]:
 
     # Fallback to environment variables if not present in database
     # An empty string "" row in the DB indicates an explicit disconnection, which bypasses fallback
-    if token_val is None:
+    if token_val is None or token_val == "":
         env_key = f"GITHUB_TOKEN_{mode.upper()}"
         token_val = os.environ.get(env_key) or os.environ.get("GITHUB_TOKEN") or os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN") or ""
         
-    if mcp_url_val is None:
+    if not token_val:
+        # Fallback to checking the other workspace mode's database
+        other_mode = "personal" if mode == "work" else "work"
+        other_db = get_db_for_mode(other_mode)
+        try:
+            other_token_row = other_db.query(Setting).filter(Setting.key == "github_access_token").first()
+            if other_token_row and other_token_row.value:
+                token_val = other_token_row.value
+                logger.info(f"Using GitHub token from {other_mode} mode as fallback.")
+        except Exception:
+            pass
+        finally:
+            other_db.close()
+
+    if mcp_url_val is None or mcp_url_val == "":
         env_mcp_key = f"MCP_GITHUB_URL_{mode.upper()}"
         mcp_url_val = os.environ.get(env_mcp_key) or os.environ.get("MCP_GITHUB_URL") or ""
+
+    if not mcp_url_val:
+        other_mode = "personal" if mode == "work" else "work"
+        other_db = get_db_for_mode(other_mode)
+        try:
+            other_mcp_url_row = other_db.query(Setting).filter(Setting.key == "mcp_github_url").first()
+            if other_mcp_url_row and other_mcp_url_row.value:
+                mcp_url_val = other_mcp_url_row.value
+                logger.info(f"Using GitHub MCP URL from {other_mode} mode as fallback.")
+        except Exception:
+            pass
+        finally:
+            other_db.close()
         
-    return token_val, mcp_url_val
+    return token_val or "", mcp_url_val or ""
 
 
 async def query_github_mcp(
@@ -54,6 +81,19 @@ async def query_github_mcp(
     token, mcp_url = get_github_credentials(mode)
 
     logger.info(f"GitHub query: method={method}, mode={mode}, has_token={bool(token)}, has_mcp={bool(mcp_url)}")
+
+    # Auto-resolve default repository if not specified
+    if method in ["view_repository", "read_issues", "create_issue", "read_pull_requests", "view_commits"]:
+        if not repo or "/" not in repo:
+            repos_res = await query_github_mcp("list_repositories", mode=mode)
+            if "repositories" in repos_res and repos_res["repositories"]:
+                repo = repos_res["repositories"][0]["name"]
+                logger.info(f"Auto-resolved missing repo argument to first available repo: '{repo}'")
+            else:
+                err_msg = repos_res.get("error") if isinstance(repos_res, dict) else None
+                return {
+                    "error": f"Missing or invalid repository argument. Format must be 'owner/repo'. Auto-resolution failed: {err_msg or 'No repositories found.'}"
+                }
 
     # ── MCP ROUTE ──
     if mcp_url:
