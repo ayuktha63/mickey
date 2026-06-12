@@ -44,7 +44,7 @@ async def get_available_models(mode: str = "work") -> List[str]:
                 return [m["name"] for m in data.get("models", [])]
     except Exception as e:
         logger.warning(f"Error fetching Ollama models: {e}")
-    return ["llama3.1", "qwen2.5:7b", "mistral"] # fallback list
+    return []
 
 # Define the tools available to the assistant
 SYSTEM_PROMPT = """You are a highly efficient self-hosted AI Productivity Assistant named Cookie.

@@ -17,6 +17,18 @@ class FilesService:
     def _is_path_allowed(self, path: Path) -> bool:
         try:
             resolved = path.resolve()
+            
+            # Security block: prevent access to database files or SQLite temp files
+            blocked_extensions = {".db", ".sqlite", ".sqlite3", "-journal", "-shm", "-wal"}
+            ext = resolved.suffix.lower()
+            if ext in blocked_extensions or any(x in resolved.name.lower() for x in [".db", ".sqlite"]):
+                return False
+                
+            # Specifically block any Mickey database files by name pattern
+            blocked_keywords = ["workspace_work", "workspace_personal", "workspace.db"]
+            if any(kw in resolved.name.lower() for kw in blocked_keywords):
+                return False
+                
             return any(resolved.is_relative_to(allowed) for allowed in self.whitelist)
         except Exception:
             return False
@@ -43,8 +55,11 @@ class FilesService:
         results = []
         for allowed in self.whitelist:
             for p in allowed.rglob(f'*{query}*'):
-                if p.is_file():
-                    results.append(self.get_metadata(str(p)))
+                if p.is_file() and self._is_path_allowed(p):
+                    try:
+                        results.append(self.get_metadata(str(p)))
+                    except Exception:
+                        pass
         return results
 
     def search_by_extension(self, ext: str) -> List[Dict[str, Any]]:
@@ -53,8 +68,11 @@ class FilesService:
         results = []
         for allowed in self.whitelist:
             for p in allowed.rglob(f'*{ext}'):
-                if p.is_file():
-                    results.append(self.get_metadata(str(p)))
+                if p.is_file() and self._is_path_allowed(p):
+                    try:
+                        results.append(self.get_metadata(str(p)))
+                    except Exception:
+                        pass
         return results
 
     # Placeholder for content search – a real implementation would use an indexed search engine.
@@ -63,7 +81,7 @@ class FilesService:
         results = []
         for allowed in self.whitelist:
             for p in allowed.rglob('*'):
-                if not p.is_file():
+                if not p.is_file() or not self._is_path_allowed(p):
                     continue
                 if file_type and not p.suffix.lower() == f'.{file_type.lower()}':
                     continue
@@ -72,7 +90,10 @@ class FilesService:
                 except Exception:
                     continue
                 if query.lower() in content.lower():
-                    results.append(self.get_metadata(str(p)))
+                    try:
+                        results.append(self.get_metadata(str(p)))
+                    except Exception:
+                        pass
         return results
 
     # Recent and favorite helpers
