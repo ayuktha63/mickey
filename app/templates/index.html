@@ -832,19 +832,114 @@
           </div>
 
           <!-- Right side: Issues Board / Detail -->
-          <div class="dashboard-card" style="padding:1.25rem; overflow:hidden;">
+          <div class="dashboard-card" style="padding:1.25rem; overflow:hidden; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.75rem; margin-bottom:1rem;">
               <div>
-                <h3 style="font-size:0.95rem; font-weight:600;">Assigned Tickets</h3>
-                <p class="subtitle" style="font-size:0.75rem;">Unresolved tickets assigned to you.</p>
+                <h3 style="font-size:0.95rem; font-weight:600;">Jira Kanban Board</h3>
+                <p class="subtitle" style="font-size:0.75rem;">Unresolved tickets assigned to you, organized by workflow status.</p>
               </div>
               <div id="jira-issues-count-badge" class="badge badge-low" style="text-transform:none; font-size:0.75rem;">0 Issues</div>
             </div>
 
-            <!-- Issues list -->
-            <div id="jira-issues-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem;">
-              <!-- Dynamically populated -->
-              <div class="loading-state">Syncing issues board...</div>
+            <!-- Kanban Columns Container -->
+            <div style="display:flex; gap:1rem; flex:1; min-height:0; overflow-x:auto; padding-bottom:0.5rem;">
+              <!-- Column: Backlog -->
+              <div style="display:flex; flex-direction:column; background:var(--bg-app); border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem; min-height:0; width:280px; min-width:280px; flex-shrink:0; overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border);">
+                  <div style="display:flex; align-items:center; gap:0.4rem;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#6b7280;"></span>
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-main); text-transform:uppercase; letter-spacing:0.02em;">Backlog</span>
+                  </div>
+                  <span id="jira-count-backlog" class="badge badge-low" style="font-size:0.65rem; padding:0.1rem 0.3rem;">0</span>
+                </div>
+                <div id="jira-list-backlog" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem; min-height:0; padding:0.1rem;">
+                  <div class="loading-state" style="font-size:0.75rem;">Syncing issues board...</div>
+                </div>
+              </div>
+
+              <!-- Column: To Do -->
+              <div style="display:flex; flex-direction:column; background:var(--bg-app); border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem; min-height:0; width:280px; min-width:280px; flex-shrink:0; overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border);">
+                  <div style="display:flex; align-items:center; gap:0.4rem;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#3b82f6;"></span>
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-main); text-transform:uppercase; letter-spacing:0.02em;">To Do</span>
+                  </div>
+                  <span id="jira-count-todo" class="badge badge-high" style="font-size:0.65rem; padding:0.1rem 0.3rem;">0</span>
+                </div>
+                <div id="jira-list-todo" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem; min-height:0; padding:0.1rem;">
+                  <div class="loading-state" style="font-size:0.75rem;">Syncing issues board...</div>
+                </div>
+              </div>
+
+              <!-- Column: In Progress -->
+              <div style="display:flex; flex-direction:column; background:var(--bg-app); border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem; min-height:0; width:280px; min-width:280px; flex-shrink:0; overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border);">
+                  <div style="display:flex; align-items:center; gap:0.4rem;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span>
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-main); text-transform:uppercase; letter-spacing:0.02em;">In Progress</span>
+                  </div>
+                  <span id="jira-count-inprogress" class="badge badge-medium" style="font-size:0.65rem; padding:0.1rem 0.3rem;">0</span>
+                </div>
+                <div id="jira-list-inprogress" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem; min-height:0; padding:0.1rem;">
+                  <div class="loading-state" style="font-size:0.75rem;">Syncing issues board...</div>
+                </div>
+              </div>
+
+              <!-- Column: Dev In Review -->
+              <div style="display:flex; flex-direction:column; background:var(--bg-app); border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem; min-height:0; width:280px; min-width:280px; flex-shrink:0; overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border);">
+                  <div style="display:flex; align-items:center; gap:0.4rem;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#a855f7;"></span>
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-main); text-transform:uppercase; letter-spacing:0.02em;">Dev In Review</span>
+                  </div>
+                  <span id="jira-count-devinreview" class="badge badge-medium" style="font-size:0.65rem; padding:0.1rem 0.3rem;">0</span>
+                </div>
+                <div id="jira-list-devinreview" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem; min-height:0; padding:0.1rem;">
+                  <div class="loading-state" style="font-size:0.75rem;">Syncing issues board...</div>
+                </div>
+              </div>
+
+              <!-- Column: Testing -->
+              <div style="display:flex; flex-direction:column; background:var(--bg-app); border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem; min-height:0; width:280px; min-width:280px; flex-shrink:0; overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border);">
+                  <div style="display:flex; align-items:center; gap:0.4rem;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#06b6d4;"></span>
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-main); text-transform:uppercase; letter-spacing:0.02em;">Testing</span>
+                  </div>
+                  <span id="jira-count-testing" class="badge badge-medium" style="font-size:0.65rem; padding:0.1rem 0.3rem;">0</span>
+                </div>
+                <div id="jira-list-testing" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem; min-height:0; padding:0.1rem;">
+                  <div class="loading-state" style="font-size:0.75rem;">Syncing issues board...</div>
+                </div>
+              </div>
+
+              <!-- Column: Done -->
+              <div style="display:flex; flex-direction:column; background:var(--bg-app); border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem; min-height:0; width:280px; min-width:280px; flex-shrink:0; overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border);">
+                  <div style="display:flex; align-items:center; gap:0.4rem;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-main); text-transform:uppercase; letter-spacing:0.02em;">Done</span>
+                  </div>
+                  <span id="jira-count-done" class="badge badge-low" style="font-size:0.65rem; padding:0.1rem 0.3rem;">0</span>
+                </div>
+                <div id="jira-list-done" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem; min-height:0; padding:0.1rem;">
+                  <div class="loading-state" style="font-size:0.75rem;">Syncing issues board...</div>
+                </div>
+              </div>
+
+              <!-- Column: Closed -->
+              <div style="display:flex; flex-direction:column; background:var(--bg-app); border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem; min-height:0; width:280px; min-width:280px; flex-shrink:0; overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border);">
+                  <div style="display:flex; align-items:center; gap:0.4rem;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#374151;"></span>
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-main); text-transform:uppercase; letter-spacing:0.02em;">Closed</span>
+                  </div>
+                  <span id="jira-count-closed" class="badge badge-low" style="font-size:0.65rem; padding:0.1rem 0.3rem;">0</span>
+                </div>
+                <div id="jira-list-closed" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem; min-height:0; padding:0.1rem;">
+                  <div class="loading-state" style="font-size:0.75rem;">Syncing issues board...</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

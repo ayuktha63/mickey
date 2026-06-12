@@ -174,17 +174,33 @@ class JiraService:
 
     async def list_assigned_issues(self, jql: str = None) -> List[Dict[str, Any]]:
         if not jql:
-            jql = f"assignee = currentUser() AND resolution = Unresolved"
+            jql = f"assignee = currentUser() ORDER BY updated DESC"
+        
+        fields_list = ["summary", "status", "issuetype", "description", "comment", "priority", "assignee", "project", "created"]
+        
         # Use POST /rest/api/3/search/jql by default (supports long or complex JQL and avoids URL length limits)
         try:
-            data = await self._request("POST", "/rest/api/3/search/jql", json_body={"jql": jql, "maxResults": 50})
+            data = await self._request(
+                "POST", 
+                "/rest/api/3/search/jql", 
+                json_body={"jql": jql, "maxResults": 100, "fields": fields_list}
+            )
         except HTTPException as he:
             # If POST fails, try GET fallback and legacy endpoints
+            fields_str = ",".join(fields_list)
             try:
-                data = await self._request("GET", "/rest/api/3/search/jql", params={"jql": jql, "maxResults": 50})
+                data = await self._request(
+                    "GET", 
+                    "/rest/api/3/search/jql", 
+                    params={"jql": jql, "maxResults": 100, "fields": fields_str}
+                )
             except HTTPException:
                 try:
-                    data = await self._request("GET", "/rest/api/3/search", params={"jql": jql, "maxResults": 50})
+                    data = await self._request(
+                        "GET", 
+                        "/rest/api/3/search", 
+                        params={"jql": jql, "maxResults": 100, "fields": fields_str}
+                    )
                 except Exception:
                     raise he
 
@@ -211,14 +227,36 @@ class JiraService:
         return []
 
     async def create_issue(self, project_key: str, summary: str, description: str = "", issue_type: str = "Task") -> Dict[str, Any]:
+        # Convert plain-text description to Atlassian Document Format (ADF) for Jira v3 compatibility
+        if isinstance(description, str) and description.strip():
+            desc_val = {
+                "type": "doc",
+                "version": 1,
+                "content": [
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": description
+                            }
+                        ]
+                    }
+                ]
+            }
+        else:
+            desc_val = None
+
         payload = {
             "fields": {
                 "project": {"key": project_key},
                 "summary": summary,
-                "description": description,
                 "issuetype": {"name": issue_type},
             }
         }
+        if desc_val:
+            payload["fields"]["description"] = desc_val
+
         return await self._request("POST", "/rest/api/3/issue", json_body=payload)
 
     async def update_issue(self, issue_key: str, fields: Dict[str, Any]) -> Dict[str, Any]:
@@ -229,8 +267,31 @@ class JiraService:
         payload = {"transition": {"id": transition_id}}
         return await self._request("POST", f"/rest/api/3/issue/{issue_key}/transitions", json_body=payload)
 
+    async def get_transitions(self, issue_key: str) -> Dict[str, Any]:
+        return await self._request("GET", f"/rest/api/3/issue/{issue_key}/transitions")
+
     async def add_comment(self, issue_key: str, comment: str) -> Dict[str, Any]:
-        payload = {"body": comment}
+        # Convert plain-text comment to Atlassian Document Format (ADF) for Jira v3 compatibility
+        if isinstance(comment, str) and comment.strip():
+            body_val = {
+                "type": "doc",
+                "version": 1,
+                "content": [
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": comment
+                            }
+                        ]
+                    }
+                ]
+            }
+        else:
+            body_val = comment
+
+        payload = {"body": body_val}
         return await self._request("POST", f"/rest/api/3/issue/{issue_key}/comment", json_body=payload)
 
     async def assign_issue(self, issue_key: str, assignee_account_id: str) -> Dict[str, Any]:

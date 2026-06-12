@@ -824,6 +824,24 @@ async def add_jira_comment(issue_key: str, req: schemas.JiraCommentCreate, reque
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/api/jira/issues/{issue_key}/transitions")
+async def get_jira_issue_transitions(issue_key: str, request: Request, db: Session = Depends(get_db)):
+    mode = request.headers.get("x-workspace-mode", "work").lower()
+    from app.services.jira_service import JiraService
+    try:
+        service = JiraService(mode=mode)
+        res = await service.get_transitions(issue_key)
+        
+        # Log MCP/API action
+        db.add(MCPLog(mcp_name="Jira", action="get_transitions", details=f"issue_key={issue_key}"))
+        db.commit()
+        
+        return res
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.put("/api/jira/issues/{issue_key}/transition")
 async def transition_jira_issue(issue_key: str, req: schemas.JiraTransitionRequest, request: Request, db: Session = Depends(get_db)):
     mode = request.headers.get("x-workspace-mode", "work").lower()

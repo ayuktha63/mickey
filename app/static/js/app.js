@@ -4099,16 +4099,32 @@ async function loadJiraProjects() {
 }
 
 async function loadJiraIssues() {
-  const listCont = el('jira-issues-list');
+  const backlogList = el('jira-list-backlog');
+  const todoList = el('jira-list-todo');
+  const progressList = el('jira-list-inprogress');
+  const devinreviewList = el('jira-list-devinreview');
+  const doneList = el('jira-list-done');
+  const testingList = el('jira-list-testing');
+  const closedList = el('jira-list-closed');
   const countBadge = el('jira-issues-count-badge');
-  if (!listCont) return;
   
-  listCont.innerHTML = '<div class="loading-state">Syncing issues board...</div>';
+  if (!backlogList || !todoList || !progressList || !devinreviewList || !doneList || !testingList || !closedList) return;
+  
+  const loader = '<div class="loading-state" style="font-size:0.75rem;">Syncing...</div>';
+  backlogList.innerHTML = loader;
+  todoList.innerHTML = loader;
+  progressList.innerHTML = loader;
+  devinreviewList.innerHTML = loader;
+  doneList.innerHTML = loader;
+  testingList.innerHTML = loader;
+  closedList.innerHTML = loader;
   
   const projectKey = el('jira-project-selector').value;
   let url = '/api/jira/issues';
   if (projectKey) {
-    url += `?jql=${encodeURIComponent('project = ' + projectKey + ' AND resolution = Unresolved')}`;
+    url += `?jql=${encodeURIComponent('project = ' + projectKey + ' AND assignee = currentUser() ORDER BY updated DESC')}`;
+  } else {
+    url += `?jql=${encodeURIComponent('assignee = currentUser() ORDER BY updated DESC')}`;
   }
   
   try {
@@ -4116,21 +4132,54 @@ async function loadJiraIssues() {
     if (res.ok) {
       const data = await res.json();
       allJiraIssues = data.issues || [];
-      listCont.innerHTML = '';
+      
+      backlogList.innerHTML = '';
+      todoList.innerHTML = '';
+      progressList.innerHTML = '';
+      devinreviewList.innerHTML = '';
+      doneList.innerHTML = '';
+      testingList.innerHTML = '';
+      closedList.innerHTML = '';
       
       if (countBadge) {
         countBadge.textContent = `${allJiraIssues.length} Issues`;
       }
       
+      const emptyHtml = '<div class="placeholder-text" style="font-size:0.75rem; padding:1.5rem 0; text-align:center; color:var(--text-muted);">No issues</div>';
       if (allJiraIssues.length === 0) {
-        listCont.innerHTML = '<div class="placeholder-text">No unresolved tickets found.</div>';
+        backlogList.innerHTML = emptyHtml;
+        todoList.innerHTML = emptyHtml;
+        progressList.innerHTML = emptyHtml;
+        devinreviewList.innerHTML = emptyHtml;
+        doneList.innerHTML = emptyHtml;
+        testingList.innerHTML = emptyHtml;
+        closedList.innerHTML = emptyHtml;
         return;
       }
       
+      let backlogCount = 0;
+      let todoCount = 0;
+      let progressCount = 0;
+      let devinreviewCount = 0;
+      let doneCount = 0;
+      let testingCount = 0;
+      let closedCount = 0;
+      
       allJiraIssues.forEach(issue => {
         const item = document.createElement('div');
-        item.className = 'task-row';
+        item.className = 'kanban-card';
+        item.style.background = 'var(--bg-card)';
+        item.style.border = '1px solid var(--border)';
+        item.style.borderRadius = 'var(--radius)';
+        item.style.padding = '0.75rem';
         item.style.cursor = 'pointer';
+        item.style.display = 'flex';
+        item.style.flexDirection = 'column';
+        item.style.gap = '0.4rem';
+        item.style.transition = 'all 0.2s';
+        
+        item.addEventListener('mouseenter', () => { item.style.borderColor = 'var(--primary)'; });
+        item.addEventListener('mouseleave', () => { item.style.borderColor = 'var(--border)'; });
         item.addEventListener('click', () => openJiraIssueDetail(issue));
         
         const key = issue?.key || issue?.id || (issue?.fields && issue.fields.issueKey) || 'UNKNOWN';
@@ -4138,50 +4187,107 @@ async function loadJiraIssues() {
         const statusName = issue?.fields?.status?.name || issue?.status || 'To Do';
         const typeName = issue?.fields?.issuetype?.name || issue?.type || 'Task';
         
-        // Determine status badge class
-        let badgeClass = 'badge-low';
-        const statusLower = (typeof statusName === 'string') ? statusName.toLowerCase() : '';
-        if (statusLower === 'in progress') badgeClass = 'badge-medium';
-        if (statusLower === 'done' || statusLower === 'resolved') badgeClass = 'badge-low';
-        if (statusLower === 'to do' || statusLower === 'backlog') badgeClass = 'badge-high';
+        // Ensure properties are populated on the issue object for detail view and API endpoints
+        if (!issue.key || issue.key === 'undefined') issue.key = key;
+        if (!issue.summary) issue.summary = summary;
+        if (!issue.status) issue.status = statusName;
+        if (!issue.type) issue.type = typeName;
         
         item.innerHTML = `
-          <div class="task-left">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
-            <div class="task-details">
-              <h3>[${key}] ${summary}</h3>
-              <span style="font-size:0.7rem; color:var(--text-muted);">${typeName}</span>
-            </div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem; margin-bottom:0.1rem;">
+            <span style="font-size:0.7rem; font-weight:700; color:var(--primary);">${key}</span>
+            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; border:1px solid var(--border); padding:0.1rem 0.3rem; border-radius:3px; background:var(--bg-app);">${typeName}</span>
           </div>
-          <div class="task-right">
-            <span class="badge ${badgeClass}">${statusName}</span>
-          </div>
+          <h4 style="font-size:0.8rem; font-weight:600; color:var(--text-main); line-height:1.35; margin:0; text-align:left;">${summary}</h4>
         `;
-        listCont.appendChild(item);
+        
+        // Map to column based on status
+        const statusLower = statusName.toLowerCase();
+        if (statusLower === 'backlog') {
+          backlogList.appendChild(item);
+          backlogCount++;
+        } else if (statusLower === 'to do' || statusLower === 'todo' || statusLower === 'open') {
+          todoList.appendChild(item);
+          todoCount++;
+        } else if (statusLower === 'in progress' || statusLower === 'progress' || statusLower === 'developing') {
+          progressList.appendChild(item);
+          progressCount++;
+        } else if (statusLower === 'dev in review' || statusLower === 'in review' || statusLower === 'review' || statusLower === 'peer review') {
+          devinreviewList.appendChild(item);
+          devinreviewCount++;
+        } else if (statusLower === 'done' || statusLower === 'resolved' || statusLower === 'completed') {
+          doneList.appendChild(item);
+          doneCount++;
+        } else if (statusLower === 'testing' || statusLower === 'test' || statusLower === 'qa' || statusLower === 'qa testing') {
+          testingList.appendChild(item);
+          testingCount++;
+        } else if (statusLower === 'closed') {
+          closedList.appendChild(item);
+          closedCount++;
+        } else {
+          todoList.appendChild(item);
+          todoCount++;
+        }
       });
+      
+      // Update column badges
+      el('jira-count-backlog').textContent = backlogCount;
+      el('jira-count-todo').textContent = todoCount;
+      el('jira-count-inprogress').textContent = progressCount;
+      el('jira-count-devinreview').textContent = devinreviewCount;
+      el('jira-count-done').textContent = doneCount;
+      el('jira-count-testing').textContent = testingCount;
+      el('jira-count-closed').textContent = closedCount;
+      
+      // Add empty placeholders for columns with no items
+      if (backlogCount === 0) backlogList.innerHTML = emptyHtml;
+      if (todoCount === 0) todoList.innerHTML = emptyHtml;
+      if (progressCount === 0) progressList.innerHTML = emptyHtml;
+      if (devinreviewCount === 0) devinreviewList.innerHTML = emptyHtml;
+      if (doneCount === 0) doneList.innerHTML = emptyHtml;
+      if (testingCount === 0) testingList.innerHTML = emptyHtml;
+      if (closedCount === 0) closedList.innerHTML = emptyHtml;
+      
     } else {
-      listCont.innerHTML = '<div class="placeholder-text text-danger">Failed to sync Jira issues. Check connection.</div>';
+      const errHtml = '<div class="placeholder-text text-danger" style="font-size:0.75rem; text-align:center; padding:1.5rem 0;">Failed to sync issues.</div>';
+      backlogList.innerHTML = errHtml;
+      todoList.innerHTML = errHtml;
+      progressList.innerHTML = errHtml;
+      devinreviewList.innerHTML = errHtml;
+      doneList.innerHTML = errHtml;
+      testingList.innerHTML = errHtml;
+      closedList.innerHTML = errHtml;
     }
   } catch (e) {
-    listCont.innerHTML = '<div class="placeholder-text text-danger">Jira Connection failed.</div>';
+    const errHtml = '<div class="placeholder-text text-danger" style="font-size:0.75rem; text-align:center; padding:1.5rem 0;">Connection failed.</div>';
+    backlogList.innerHTML = errHtml;
+    todoList.innerHTML = errHtml;
+    progressList.innerHTML = errHtml;
+    devinreviewList.innerHTML = errHtml;
+    doneList.innerHTML = errHtml;
+    testingList.innerHTML = errHtml;
+    closedList.innerHTML = errHtml;
   }
 }
 
 function openJiraIssueDetail(issue) {
   selectedJiraIssue = issue;
   
-  el('jira-modal-issue-key').textContent = issue.key;
-  el('jira-modal-issue-summary').textContent = issue.fields?.summary || '';
+  const key = issue.key || issue.id || (issue.fields && issue.fields.issueKey) || 'UNKNOWN';
+  if (!issue.key) issue.key = key;
+  
+  el('jira-modal-issue-key').textContent = key;
+  el('jira-modal-issue-summary').textContent = issue.fields?.summary || issue.summary || issue.name || 'No Summary';
   
   const statusEl = el('jira-modal-issue-status');
-  const statusName = issue.fields?.status?.name || 'To Do';
+  const statusName = issue.fields?.status?.name || issue.status || 'To Do';
   statusEl.textContent = statusName;
   statusEl.className = 'badge';
   if (statusName.toLowerCase() === 'in progress') statusEl.classList.add('badge-medium');
   else if (statusName.toLowerCase() === 'done' || statusName.toLowerCase() === 'resolved') statusEl.classList.add('badge-low');
   else statusEl.classList.add('badge-high');
   
-  el('jira-modal-issue-type').textContent = issue.fields?.issuetype?.name || 'Task';
+  el('jira-modal-issue-type').textContent = issue.fields?.issuetype?.name || issue.type || 'Task';
   
   // Render description
   const descEl = el('jira-modal-issue-description');
@@ -4198,13 +4304,35 @@ function openJiraIssueDetail(issue) {
   
   // Populate transition dropdown options if available
   const transitionSelect = el('jira-modal-transition-select');
-  transitionSelect.innerHTML = '<option value="">Choose Transition...</option>';
-  // Provide basic common transitions
-  transitionSelect.innerHTML += `
-    <option value="To Do">To Do</option>
-    <option value="In Progress">In Progress</option>
-    <option value="Done">Done (Resolve)</option>
-  `;
+  transitionSelect.innerHTML = '<option value="">Loading transitions...</option>';
+  
+  (async () => {
+    try {
+      const res = await apiFetch(`/api/jira/issues/${key}/transitions`);
+      if (res.ok) {
+        const data = await res.json();
+        const transitions = data.transitions || [];
+        transitionSelect.innerHTML = '<option value="">Choose Transition...</option>';
+        if (transitions.length === 0) {
+          transitionSelect.innerHTML = '<option value="">No transitions available</option>';
+        } else {
+          transitions.forEach(t => {
+            transitionSelect.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+          });
+        }
+      } else {
+        throw new Error("Failed to fetch transitions");
+      }
+    } catch (err) {
+      console.warn("Could not fetch Jira transitions dynamically. Falling back to mock transitions:", err);
+      transitionSelect.innerHTML = '<option value="">Choose Transition...</option>';
+      transitionSelect.innerHTML += `
+        <option value="To Do">To Do</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Done">Done (Resolve)</option>
+      `;
+    }
+  })();
 
   // Render comments
   renderJiraComments(issue);
@@ -4387,10 +4515,11 @@ function setupJiraPanelBindings() {
         return;
       }
       
-      // Map names to mockup IDs (Jira v3 uses transition ids, fallback map)
-      let transition_id = "21"; // In progress fallback
+      // Use chosen option value directly as transition_id, with fallback for string matching
+      let transition_id = transName;
       if (transName === 'To Do') transition_id = "11";
-      if (transName === 'Done') transition_id = "31";
+      else if (transName === 'In Progress') transition_id = "21";
+      else if (transName === 'Done') transition_id = "31";
       
       Sound.playClick();
       try {

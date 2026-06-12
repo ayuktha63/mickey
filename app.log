@@ -1430,3 +1430,151 @@
 2026-06-12 10:34:44,549 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
 2026-06-12 10:34:44,551 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
 2026-06-12 10:34:44,552 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 10:42:14,914 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 10:52:55,109 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 10:52:55,626 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 10:52:55,661 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 10:53:02,372 - httpx - INFO - HTTP Request: GET http://localhost:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 10:53:03,490 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 10:53:03,500 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 10:53:03,504 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 10:53:03,909 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 10:53:03,911 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 10:53:03,912 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 10:53:04,406 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 10:53:15,744 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/myself "HTTP/1.1 200 OK"
+2026-06-12 10:53:18,711 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 10:53:22,705 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 10:54:07,097 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 10:54:08,797 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 10:54:14,113 - httpx - INFO - HTTP Request: GET http://localhost:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 10:54:15,247 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 10:54:15,255 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 10:54:15,257 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 10:54:15,651 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 10:54:15,651 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 10:54:15,651 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 10:54:16,055 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 10:54:17,663 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 10:54:17,712 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 10:54:18,121 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 10:54:24,823 - httpx - INFO - HTTP Request: GET http://localhost:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 10:54:25,988 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 10:54:25,991 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 10:54:25,994 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 10:54:26,358 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 10:54:26,359 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 10:54:26,359 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 10:54:26,926 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 10:54:29,368 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 10:54:31,109 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 10:54:32,647 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 10:54:33,263 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 10:54:33,297 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 10:54:45,012 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 11:00:39,336 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 11:00:39,372 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 11:00:42,938 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 11:00:42,972 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 11:10:26,335 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 11:10:26,815 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 11:10:26,850 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 11:10:40,380 - httpx - INFO - HTTP Request: GET http://localhost:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 11:10:41,520 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 11:10:41,532 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:10:41,536 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:10:41,942 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 11:10:41,945 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 11:10:41,946 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 11:10:43,092 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:10:43,094 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:10:43,490 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 11:10:43,490 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 11:10:43,491 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 11:10:45,123 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 11:10:45,156 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:10:45,159 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:10:45,545 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 11:10:45,548 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 11:10:45,548 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 11:10:45,992 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 11:10:53,679 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 11:10:54,374 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:10:54,377 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:10:54,514 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 11:10:54,758 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 11:10:54,759 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 11:10:54,759 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 11:10:57,386 - httpx - INFO - HTTP Request: GET http://localhost:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 11:10:58,518 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 11:10:58,522 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:10:58,524 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:10:58,846 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:10:58,855 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:10:58,906 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 11:10:58,908 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 11:10:58,909 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 11:10:59,221 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 11:10:59,222 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 11:10:59,222 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 11:11:05,572 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 11:11:06,434 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 11:11:27,745 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 11:11:27,782 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 11:11:39,747 - httpx - INFO - HTTP Request: GET http://localhost:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 11:11:40,940 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 11:11:40,959 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:11:40,967 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:11:41,349 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 11:11:41,350 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 11:11:41,350 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 11:11:58,785 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 11:11:58,787 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:11:58,792 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:11:59,228 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 11:11:59,231 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 11:11:59,231 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 11:12:10,115 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 11:12:14,928 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 11:12:31,482 - httpx - INFO - HTTP Request: GET http://localhost:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 11:12:32,687 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 11:12:32,690 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:12:32,693 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:12:33,082 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 11:12:33,082 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 11:12:33,083 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 11:12:35,020 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 11:12:35,476 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 11:12:53,703 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:12:53,714 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:12:54,097 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 401 Unauthorized"
+2026-06-12 11:12:54,098 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 401
+2026-06-12 11:12:54,098 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=False
+2026-06-12 11:14:15,504 - httpx - INFO - HTTP Request: GET https://api.github.com/user "HTTP/1.1 200 OK"
+2026-06-12 11:14:17,939 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:14:17,942 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:14:18,655 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 11:14:18,659 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 11:14:18,662 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 11:14:18,670 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=view_repository, mode=personal
+2026-06-12 11:14:18,672 - app.services.github - INFO - GitHub query: method=view_repository, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:14:18,676 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=read_issues, mode=personal
+2026-06-12 11:14:18,678 - app.services.github - INFO - GitHub query: method=read_issues, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:14:19,183 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/mickey "HTTP/1.1 200 OK"
+2026-06-12 11:14:19,183 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/mickey -> status 200
+2026-06-12 11:14:19,184 - app.api.routes - INFO - Local GitHub MCP request completed: tool=view_repository, mode=personal, success=True
+2026-06-12 11:14:19,191 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/ayuktha63/mickey/issues?state=open&per_page=15 "HTTP/1.1 200 OK"
+2026-06-12 11:14:19,191 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/repos/ayuktha63/mickey/issues?state=open&per_page=15 -> status 200
+2026-06-12 11:14:19,192 - app.api.routes - INFO - Local GitHub MCP request completed: tool=read_issues, mode=personal, success=True
+2026-06-12 11:14:25,602 - app.services.gmail - ERROR - Gmail IMAP connection failed: b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'
+2026-06-12 11:14:25,607 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 11:14:25,611 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 11:14:26,291 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 11:14:26,294 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 11:14:26,296 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 11:14:26,936 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 11:14:27,802 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 11:14:28,679 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 11:14:29,226 - httpx - INFO - HTTP Request: GET https://orqueinnovations.atlassian.net/rest/api/3/project/search "HTTP/1.1 200 OK"
+2026-06-12 11:14:29,282 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
+2026-06-12 11:14:29,705 - httpx - INFO - HTTP Request: POST https://orqueinnovations.atlassian.net/rest/api/3/search/jql "HTTP/1.1 200 OK"
