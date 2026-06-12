@@ -3,8 +3,9 @@ from fastapi import Request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL_WORK = "sqlite:///./workspace_work.db"
-DATABASE_URL_PERSONAL = "sqlite:///./workspace_personal.db"
+DATABASE_DIR = os.getenv("DATABASE_DIR", ".")
+DATABASE_URL_WORK = f"sqlite:///{DATABASE_DIR}/workspace_work.db"
+DATABASE_URL_PERSONAL = f"sqlite:///{DATABASE_DIR}/workspace_personal.db"
 
 # Create two independent engines
 engines = {

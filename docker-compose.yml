@@ -9,6 +9,6 @@ services:
     volumes:
       - ./data:/app/data
     environment:
-      - DATABASE_URL=sqlite:////app/data/workspace.db
+      - DATABASE_DIR=/app/data
       - PORT=8000
     restart: unless-stopped

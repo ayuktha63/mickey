@@ -1422,3 +1422,11 @@
 2026-06-12 10:12:23,224 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
 2026-06-12 10:12:23,225 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
 2026-06-12 10:12:23,226 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
+2026-06-12 10:23:29,164 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 10:23:29,202 - workspace - INFO - Mickey AI Productivity Workspace routes and static endpoints initialized.
+2026-06-12 10:34:39,105 - httpx - INFO - HTTP Request: GET http://localhost:11434/api/tags "HTTP/1.1 200 OK"
+2026-06-12 10:34:43,723 - app.api.routes - INFO - Local GitHub MCP received request: method=tools/call, tool=list_repositories, mode=personal
+2026-06-12 10:34:43,737 - app.services.github - INFO - GitHub query: method=list_repositories, mode=personal, has_token=True, has_mcp=False
+2026-06-12 10:34:44,549 - httpx - INFO - HTTP Request: GET https://api.github.com/user/repos?sort=updated&per_page=20 "HTTP/1.1 200 OK"
+2026-06-12 10:34:44,551 - app.services.github - INFO - GitHub REST call: GET https://api.github.com/user/repos?sort=updated&per_page=20 -> status 200
+2026-06-12 10:34:44,552 - app.api.routes - INFO - Local GitHub MCP request completed: tool=list_repositories, mode=personal, success=True
