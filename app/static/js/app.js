@@ -2123,6 +2123,237 @@ function openEffortsPopup(toolCall, result) {
   openModal('efforts-modal');
 }
 
+function extractToolCalls(text) {
+  const toolCalls = [];
+  let inString = false;
+  let escapeNext = false;
+  let braceDepth = 0;
+  const currentJson = [];
+  
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (escapeNext) {
+      escapeNext = false;
+      if (braceDepth > 0) currentJson.push(char);
+      continue;
+    }
+    if (char === '\\') {
+      escapeNext = true;
+      if (braceDepth > 0) currentJson.push(char);
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      if (braceDepth > 0) currentJson.push(char);
+      continue;
+    }
+    if (!inString) {
+      if (char === '{') {
+        braceDepth++;
+        currentJson.push(char);
+      } else if (char === '}') {
+        braceDepth--;
+        if (braceDepth >= 0) currentJson.push(char);
+        if (braceDepth === 0) {
+          const jsonStr = currentJson.join('').trim();
+          currentJson.length = 0;
+          try {
+            const data = JSON.parse(jsonStr);
+            if (data && typeof data === 'object' && 'tool' in data) {
+              toolCalls.push(data);
+            }
+          } catch (e) {}
+        }
+      } else {
+        if (braceDepth > 0) currentJson.push(char);
+      }
+    } else {
+      if (braceDepth > 0) currentJson.push(char);
+    }
+  }
+  return toolCalls;
+}
+
+async function runClientSideChat(message, assistantBubble, input, sendBtn) {
+  try {
+    const histRes = await apiFetch('/api/chat/history', {
+      method: 'POST',
+      body: {
+        message: message,
+        conversation_id: activeConversationId || null,
+        model_name: el('chat-model-select').value || null
+      }
+    });
+    
+    if (!histRes.ok) {
+      assistantBubble.innerHTML = "Error saving chat history on Vercel backend.";
+      return;
+    }
+    
+    const histData = await histRes.json();
+    activeConversationId = histData.conversation_id;
+    loadConversations();
+    
+    let chatMessages = histData.history;
+    const modelName = el('chat-model-select').value || "llama3.1";
+    
+    const localOllamaUrl = el('set-ollama-url').value.trim() || 'http://localhost:11434';
+    const cleanOllamaUrl = localOllamaUrl.replace(/\/$/, "");
+    
+    let chatCompleted = false;
+    let iterations = 0;
+    
+    while (!chatCompleted && iterations < 3) {
+      iterations++;
+      
+      const response = await fetch(`${cleanOllamaUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelName,
+          messages: chatMessages,
+          stream: true
+        })
+      });
+      
+      if (!response.ok || !response.body) {
+        assistantBubble.innerHTML = `Failed to connect to local Ollama server at ${cleanOllamaUrl}. Please verify Ollama is running and has model '${modelName}' loaded.`;
+        return;
+      }
+      
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = '';
+      let clearedIndicator = false;
+      let streamBuffer = '';
+      
+      while (true) {
+        const { value, done } = await reader.read();
+        let chunk = '';
+        if (value) {
+          chunk = decoder.decode(value, { stream: !done });
+        }
+        streamBuffer += chunk;
+        
+        const lines = streamBuffer.split('\n');
+        streamBuffer = lines.pop();
+        
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const parsed = JSON.parse(line);
+            const token = parsed.message?.content || '';
+            fullText += token;
+          } catch(e) {}
+        }
+        
+        if (fullText.trim() && !clearedIndicator) {
+          assistantBubble.innerHTML = '';
+          clearedIndicator = true;
+        }
+        
+        if (clearedIndicator) {
+          const textSpan = assistantBubble.querySelector('.response-text');
+          const cleanDisplay = stripToolCall(fullText);
+          if (textSpan) {
+            textSpan.innerHTML = renderMarkdown(cleanDisplay);
+          } else {
+            const span = document.createElement('span');
+            span.className = 'response-text';
+            span.innerHTML = renderMarkdown(cleanDisplay);
+            assistantBubble.appendChild(span);
+          }
+          scrollToBottom('chat-messages');
+        }
+        
+        if (done) {
+          if (streamBuffer.trim()) {
+            try {
+              const parsed = JSON.parse(streamBuffer);
+              const token = parsed.message?.content || '';
+              fullText += token;
+            } catch(e) {}
+          }
+          break;
+        }
+      }
+      
+      const toolCalls = extractToolCalls(fullText);
+      if (toolCalls && toolCalls.length > 0) {
+        const toolResults = [];
+        for (const call of toolCalls) {
+          const detailsEl = document.createElement('div');
+          detailsEl.className = 'efforts-container';
+          detailsEl.innerHTML = renderEffortsHtml(call.tool, call.args, { status: "pending" });
+          assistantBubble.appendChild(detailsEl);
+          scrollToBottom('chat-messages');
+          
+          const toolRes = await apiFetch('/api/tools/execute', {
+            method: 'POST',
+            body: { tool: call.tool, args: call.args }
+          });
+          
+          let resultData = {};
+          if (toolRes.ok) {
+            resultData = await toolRes.json();
+          } else {
+            resultData = { error: "Failed to execute tool on Vercel backend." };
+          }
+          
+          detailsEl.innerHTML = renderEffortsHtml(call.tool, call.args, resultData);
+          scrollToBottom('chat-messages');
+          
+          toolResults.push({ call, result: resultData });
+        }
+        
+        chatMessages.push({ role: 'assistant', content: fullText });
+        
+        const resultsSummary = toolResults.map(tr => `Tool '${tr.call.tool}' execution result: ${JSON.stringify(tr.result)}`).join('\n');
+        chatMessages.push({ role: 'user', content: `${resultsSummary}\nProvide the final reply to my original message based on these results.` });
+        
+        fullText = '';
+        clearedIndicator = false;
+      } else {
+        chatCompleted = true;
+        
+        await apiFetch('/api/chat/assistant/save', {
+          method: 'POST',
+          body: {
+            conversation_id: activeConversationId,
+            content: fullText
+          }
+        });
+        
+        const displayText = stripToolCall(fullText);
+        if (displayText) {
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'message-actions';
+          actionsDiv.style.cssText = 'display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 0.4rem; font-size: 0.75rem;';
+          const escapedText = encodeURIComponent(displayText);
+          actionsDiv.innerHTML = `
+            <button class="copy-msg-btn" onclick="copyFullMessage(this)" data-text="${escapedText}" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; padding: 0.2rem 0.4rem; border-radius: 4px; transition: color 0.15s ease;" title="Copy full message">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy</span>
+            </button>
+          `;
+          assistantBubble.appendChild(actionsDiv);
+          scrollToBottom('chat-messages');
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Client-side chat execution error:", e);
+    assistantBubble.innerHTML = `Failed to connect to local Ollama server. Please ensure Ollama is running locally and CORS is enabled.`;
+  } finally {
+    input.disabled = false;
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.style.opacity = '';
+      sendBtn.style.cursor = '';
+    }
+  }
+}
+
 async function handleChatSubmit(e) {
   e.preventDefault();
   const input = el('chat-input');
@@ -2178,7 +2409,16 @@ async function handleChatSubmit(e) {
   
   scrollToBottom('chat-messages');
   
-  // Send to streaming endpoint
+  // Send to streaming endpoint or bypass if Vercel with local Ollama
+  const ollamaUrl = el('set-ollama-url').value.trim();
+  const isLocalOllamaUrl = ollamaUrl.includes('localhost') || ollamaUrl.includes('127.0.0.1') || ollamaUrl === '';
+  const isVercel = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('vercel.dev');
+  
+  if (isVercel && isLocalOllamaUrl) {
+    runClientSideChat(message, assistantBubble, input, sendBtn);
+    return;
+  }
+  
   const payload = {
     message,
     conversation_id: activeConversationId || null,

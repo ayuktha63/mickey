@@ -265,6 +265,65 @@ async def chat_interaction(req: schemas.ChatRequest, request: Request, db: Sessi
 
     return StreamingResponse(stream_response(), media_type="text/plain")
 
+# ── CLIENT-SIDE CHAT SUPPORT ──
+@router.post("/api/chat/history")
+def get_chat_history_for_client(req: schemas.ChatRequest, request: Request, db: Session = Depends(get_db)):
+    conv_id = req.conversation_id
+    if not conv_id:
+        title = req.message[:30] + "..." if len(req.message) > 30 else req.message
+        conv = Conversation(title=title, model_name=req.model_name or "default")
+        db.add(conv)
+        db.commit()
+        db.refresh(conv)
+        conv_id = conv.id
+        
+    # Save user message
+    user_msg = Message(conversation_id=conv_id, role="user", content=req.message)
+    db.add(user_msg)
+    db.commit()
+    
+    # Retrieve history
+    db_messages = db.query(Message).filter(Message.conversation_id == conv_id).order_by(Message.created_at.asc()).all()
+    history = [{"role": m.role, "content": m.content} for m in db_messages]
+    
+    # Prepend system prompt
+    current_time_str = datetime.datetime.now().strftime("%A, %B %d, %Y %I:%M %p")
+    from app.services.ollama import SYSTEM_PROMPT
+    system_item = {"role": "system", "content": SYSTEM_PROMPT.replace("{current_time}", current_time_str)}
+    
+    chat_messages = [system_item] + [m for m in history if m["role"] != "system"]
+    
+    return {"conversation_id": conv_id, "history": chat_messages}
+
+@router.post("/api/tools/execute")
+async def run_tool_for_client(payload: Dict[str, Any], request: Request, db: Session = Depends(get_db)):
+    tool_name = payload.get("tool")
+    args = payload.get("args", {})
+    mode = request.headers.get("x-workspace-mode", "work").lower()
+    from app.services.ollama import execute_tool
+    try:
+        res = await execute_tool(tool_name, args, mode=mode)
+        return res
+    except Exception as e:
+        logger.exception("Error executing tool on client request")
+        return {"error": str(e)}
+
+@router.post("/api/chat/assistant/save")
+def save_assistant_message(payload: Dict[str, Any], request: Request, db: Session = Depends(get_db)):
+    conv_id = payload.get("conversation_id")
+    content = payload.get("content")
+    if not conv_id or not content:
+        raise HTTPException(status_code=400, detail="conversation_id and content required")
+        
+    assistant_msg = Message(conversation_id=conv_id, role="assistant", content=content)
+    db.add(assistant_msg)
+    
+    conv = db.query(Conversation).filter(Conversation.id == conv_id).first()
+    if conv:
+        conv.updated_at = datetime.datetime.utcnow()
+    db.commit()
+    return {"status": "success"}
+
 # ── MODELS ──
 @router.get("/api/models")
 async def list_models(request: Request):
