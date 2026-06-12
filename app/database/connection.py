@@ -1,9 +1,36 @@
 import os
+import shutil
+from pathlib import Path
 from fastapi import Request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_DIR = os.getenv("DATABASE_DIR", ".")
+# Detect if running on Vercel or similar read-only serverless environment
+IS_VERCEL = os.environ.get("VERCEL") is not None
+
+if IS_VERCEL:
+    DATABASE_DIR = "/tmp"
+    BASE_DIR = Path(__file__).resolve().parent.parent.parent
+    # Copy pre-existing SQLite databases to /tmp if they exist and are not already there
+    for db_name in ["workspace_work.db", "workspace_personal.db"]:
+        dest_path = Path(DATABASE_DIR) / db_name
+        src_path_root = BASE_DIR / db_name
+        src_path_data = BASE_DIR / "data" / db_name
+        
+        src_path = None
+        if src_path_data.exists():
+            src_path = src_path_data
+        elif src_path_root.exists():
+            src_path = src_path_root
+            
+        if src_path and not dest_path.exists():
+            try:
+                shutil.copy2(src_path, dest_path)
+            except Exception as e:
+                print(f"Failed to copy {db_name} to /tmp: {e}")
+else:
+    DATABASE_DIR = os.getenv("DATABASE_DIR", ".")
+
 DATABASE_URL_WORK = f"sqlite:///{DATABASE_DIR}/workspace_work.db"
 DATABASE_URL_PERSONAL = f"sqlite:///{DATABASE_DIR}/workspace_personal.db"
 

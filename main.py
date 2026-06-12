@@ -5,14 +5,28 @@ from fastapi.staticfiles import StaticFiles
 from app.api.routes import router
 
 # Configure logging
+import os
 BASE_DIR = Path(__file__).resolve().parent
+IS_VERCEL = os.environ.get("VERCEL") is not None
+
+log_file_path = BASE_DIR / "app.log"
+if IS_VERCEL:
+    log_file_path = Path("/tmp/app.log")
+
+handlers = [
+    logging.StreamHandler(),
+]
+
+try:
+    log_file_path.parent.mkdir(parents=True, exist_ok=True)
+    handlers.append(logging.FileHandler(log_file_path, mode="a"))
+except Exception as e:
+    print(f"Warning: Could not create FileHandler for {log_file_path}: {e}")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler(BASE_DIR / "app.log", mode="a")
-    ]
+    handlers=handlers
 )
 logger = logging.getLogger("workspace")
 

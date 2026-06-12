@@ -863,7 +863,12 @@ async def transition_jira_issue(issue_key: str, req: schemas.JiraTransitionReque
 @router.get("/api/logs/system")
 def get_system_logs():
     # Read the app.log file created by main.py
-    log_file = Path(__file__).resolve().parent.parent.parent / "app.log"
+    import os
+    if os.environ.get("VERCEL"):
+        log_file = Path("/tmp/app.log")
+    else:
+        log_file = Path(__file__).resolve().parent.parent.parent / "app.log"
+        
     if not log_file.exists():
         return {"logs": "System log file is currently empty or has not been initialized."}
     try:
