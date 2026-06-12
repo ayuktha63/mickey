@@ -921,6 +921,21 @@ async function fetchModels() {
     const data = await res.json();
     availableModels = data.models || [];
     
+    // Fallback: if backend returned no models (e.g. because backend is on Vercel and cannot reach localhost),
+    // try to fetch directly from local Ollama server in the browser!
+    if (availableModels.length === 0) {
+      try {
+        const localRes = await fetch('http://localhost:11434/api/tags');
+        if (localRes.ok) {
+          const localData = await localRes.json();
+          availableModels = (localData.models || []).map(m => m.name);
+          console.log("Fetched models directly from local Ollama server:", availableModels);
+        }
+      } catch (localErr) {
+        console.warn("Failed to fetch models directly from local Ollama:", localErr);
+      }
+    }
+    
     // Populate model selector dropdowns
     const chatModelSelect = el('chat-model-select');
     const settingsModelSelect = el('set-selected-model');
@@ -937,14 +952,33 @@ async function fetchModels() {
     // Try to restore chosen model from settings
     const activeSettingRes = await apiFetch('/api/settings');
     const activeSettingData = await activeSettingRes.json();
-    if (activeSettingData.selected_model) {
+    if (activeSettingData.selected_model && availableModels.includes(activeSettingData.selected_model)) {
       chatModelSelect.value = activeSettingData.selected_model;
       settingsModelSelect.value = activeSettingData.selected_model;
       el('active-model-display').textContent = `ollama (${activeSettingData.selected_model})`;
     } else {
-      chatModelSelect.value = "";
-      settingsModelSelect.value = "";
-      el('active-model-display').textContent = 'ollama (default)';
+      // If no valid model is selected in settings, but we have available models, auto-detect the best local one
+      if (availableModels.length > 0) {
+        let preferredModel = availableModels.find(m => m.toLowerCase().includes('minimax'));
+        if (!preferredModel) {
+          preferredModel = availableModels.find(m => m.toLowerCase().includes('gemma'));
+        }
+        if (!preferredModel) {
+          preferredModel = availableModels.find(m => m.toLowerCase().includes('llama'));
+        }
+        if (!preferredModel) {
+          preferredModel = availableModels[0];
+        }
+        
+        chatModelSelect.value = preferredModel;
+        settingsModelSelect.value = preferredModel;
+        el('active-model-display').textContent = `ollama (${preferredModel})`;
+        saveSelectedModel(preferredModel);
+      } else {
+        chatModelSelect.value = "";
+        settingsModelSelect.value = "";
+        el('active-model-display').textContent = 'ollama (default)';
+      }
     }
 
     // Set change handlers to save model choice instantly

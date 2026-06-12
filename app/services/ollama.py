@@ -397,7 +397,15 @@ async def generate_chat_stream(messages: List[Dict[str, str]], model_name: Optio
         
     if not model_name or model_name not in available:
         if available:
-            model_name = available[0]
+            # Prefer minimax, then gemma, then llama, then first available
+            preferred = next((m for m in available if "minimax" in m.lower()), None)
+            if not preferred:
+                preferred = next((m for m in available if "gemma" in m.lower()), None)
+            if not preferred:
+                preferred = next((m for m in available if "llama" in m.lower()), None)
+            if not preferred:
+                preferred = available[0]
+            model_name = preferred
         else:
             model_name = "llama3.1"
             
@@ -489,6 +497,11 @@ async def generate_chat_stream(messages: List[Dict[str, str]], model_name: Optio
                 
     except Exception as e:
         logger.exception("Error in chat stream generation")
-        yield f"\nConnection to local Ollama failed. Please ensure Ollama is running at {get_ollama_url(mode)} and you have loaded the model '{model_name}'."
+        ollama_url = get_ollama_url(mode)
+        import os
+        if os.environ.get("VERCEL") and ("localhost" in ollama_url or "127.0.0.1" in ollama_url):
+            yield f"\nConnection to local Ollama failed. Since the app is running on Vercel, it cannot connect to 'localhost'. Please run the app locally (using Docker or python main.py) or configure a public Ollama URL (e.g., via ngrok) in the Settings tab."
+        else:
+            yield f"\nConnection to local Ollama failed. Please ensure Ollama is running at {ollama_url} and you have loaded the model '{model_name}'."
 
 
